@@ -1,0 +1,126 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>Operaciones con conjuntos</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="otro.css" type="text/css" />
+</head>
+<body>
+<div id="header">
+<h1 class="title">Operaciones con conjuntos</h1>
+</div>
+<p>Para declarar conjuntos podemos asignar a una variable una secuencia de valores entre llaves. Como conjunto, un objeto tiene asociada varias funciones, como pueden ser la intersección, unión, diferencia de conjuntos...</p>
+<pre><code>sage: A=Set({1,2,3})
+sage: B=Set([3,5,6,7])</code></pre>
+<p>Así por ejemplo, para calcular <span class="math"><em>A</em> ∪ <em>B</em></span> tecleamos:</p>
+<pre><code>sage: A.union(B)
+{1, 2, 3, 5, 6, 7}</code></pre>
+<p>Y análogamente para <span class="math"><em>A</em> ∩ <em>B</em></span></p>
+<pre><code>sage: A.intersection(B)
+{3}</code></pre>
+<p>Para la diferencia de conjuntos, <span class="math"><em>A</em> \ <em>B</em></span> usamos difference</p>
+<pre><code>sage: A.difference(B)
+{1, 2}</code></pre>
+<p>Para pertenencia, por ejemplo, <span class="math">3 ∈ <em>A</em></span>, podemos utilizar:</p>
+<pre><code>sage: 3 in A
+True</code></pre>
+<p>El cardinal de un conjunto</p>
+<pre><code>sage: A.cardinality();
+3</code></pre>
+<p>Inclusión de conjuntos en ambos sentidos</p>
+<pre><code>sage: A.issuperset(B)
+False</code></pre>
+<pre><code>sage: U=A.union(B)
+sage: A.issubset(U)
+True</code></pre>
+<p>Podemos comprobar si es finito</p>
+<pre><code>sage: A.is_finite()
+True</code></pre>
+<p>O vacío</p>
+<pre><code>sage: A.is_empty()
+False</code></pre>
+<p>O calcular operaciones con conjuntos ya predefinidos. Por ejemplo, podemos calcular los elementos de <span class="math"><em>A</em></span> que no son primos</p>
+<pre><code>sage: A.difference(Primes())
+{1}</code></pre>
+<p>El conjunto potencia, o de subconjuntos de un conjunto se calcula de la siguiente forma</p>
+<pre><code>sage: A.subsets()
+Subsets of {1, 2, 3}</code></pre>
+<p>Si lo que queremos es que nos muestre los elementos, podemos usar .list; en este caso _ sirve para utilizar la última salida</p>
+<pre><code>sage: _.list()
+[{}, {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 3}, {1, 2, 3}]</code></pre>
+<p>Podemos ver también todos los subconjuntos de dos elementos</p>
+<pre><code>sage: A.subsets(2).list()
+[{1, 2}, {1, 3}, {2, 3}]</code></pre>
+<p>Podemos hacer productos cartesianos de listas o conjuntos</p>
+<pre><code>sage: C=CartesianProduct(A,B)</code></pre>
+<pre><code>sage: C.cardinality()
+12</code></pre>
+<pre><code>sage: C.list()
+[[1, 3],
+ [1, 5],
+ [1, 6],
+ [1, 7],
+ [2, 3],
+ [2, 5],
+ [2, 6],
+ [2, 7],
+ [3, 3],
+ [3, 5],
+ [3, 6],
+ [3, 7]]</code></pre>
+<h1 id="lógica-proposicional">Lógica proposicional</h1>
+<p>Los operadores lógicos más comunes se pueden escribir de la siguiente forma:</p>
+<p>- '&amp;' para el y</p>
+<p>- '|' para el o</p>
+<p>- '^' (acento circunflejo) para el o exclusivo</p>
+<p>- '-&gt;' para la implicación</p>
+<p>- '~' para la negación</p>
+<p>- '&lt;-&gt;' para el si y sólo si</p>
+<p>Con esta convención podemos capturar una fórmula a partir de una cadena de caracteres</p>
+<pre><code>sage: f= propcalc.formula(&quot;(a-&gt;b)-&gt;a&quot;)</code></pre>
+<p>Y podemos interpretarla dando valores a las proposiciones atómicas que en ella aparecen</p>
+<pre><code>sage: f.evaluate({&#39;a&#39;:True, &#39;b&#39;:False})
+True</code></pre>
+<p>O bien podemos mostrar su tabla de verdad</p>
+<pre><code>sage: f.truthtable()
+a      b      value
+False  False  False  
+False  True   False  
+True   False  True   
+True   True   True   </code></pre>
+<p>Veamos ahora con un axioma de la lógica proposicional</p>
+<pre><code>sage: a1=propcalc.formula(&quot;a-&gt;(b-&gt;a)&quot;)</code></pre>
+<p>Su tabla de verdad siempre da verdadero</p>
+<pre><code>sage: a1.truthtable()
+a      b      value
+False  False  True   
+False  True   True   
+True   False  True   
+True   True   True   </code></pre>
+<p>Podemos preguntar si una fórmula es una tautología, una contradicción o si es satisfacible</p>
+<pre><code>sage: f.is_tautology()
+False</code></pre>
+<pre><code>sage: (f&amp;~f).is_contradiction()
+True</code></pre>
+<pre><code>sage: a1.is_tautology()
+True</code></pre>
+<pre><code>sage: f.is_satisfiable()
+True</code></pre>
+<pre><code>sage: ff=f|~f</code></pre>
+<pre><code>sage: ff.is_tautology()
+True</code></pre>
+<p>Podemos también determinar si un conjunto de fórmulas es o no consistente, y si una fórmula es consecuencia lógica de otras</p>
+<pre><code>sage: f, g, h, i = propcalc.get_formulas(&quot;a-&gt;(b-&gt;c)&quot;, &quot;a&quot;, &quot;~c&quot;, &quot;~b&quot;)</code></pre>
+<pre><code>sage: propcalc.consistent(f,g,h,i)
+True</code></pre>
+<pre><code>sage: f, g, h, i = propcalc.get_formulas(&quot;a-&gt;(b-&gt;c)&quot;, &quot;a&quot;, &quot;~c&quot;, &quot;b&quot;)</code></pre>
+<pre><code>sage: propcalc.consistent(f,g,h,i)
+False</code></pre>
+<p>Sabemos por ejemplo que <span class="math">{<em>a</em> → (<em>b</em> → <em>c</em>), <em>a</em>, ¬ <em>c</em>} ⊨ ¬ <em>b</em></span></p>
+<pre><code>sage: propcalc.valid_consequence(~i,f,g,h)
+True</code></pre>
+</body>
+</html>

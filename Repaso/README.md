@@ -11,7 +11,7 @@ conjuntos...
     sage: A=Set({1,2,3})
     sage: B=Set([3,5,6,7])
 
-Así por ejemplo, para calcular $$A\cup B$$ tecleamos:
+Así por ejemplo, para calcular $A\cup B$ tecleamos:
 
     sage: A.union(B)
     {1, 2, 3, 5, 6, 7}
