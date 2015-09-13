@@ -1,4 +1,4 @@
-#Repaso
+# Repaso
 
 ##Operaciones con conjuntos
 
@@ -99,7 +99,7 @@ Podemos hacer productos cartesianos de listas o conjuntos
      [3, 6],
      [3, 7]]
 
-## Lógica proposicional
+# Lógica proposicional
 
 Los operadores lógicos más comunes se pueden escribir de la siguiente
 forma:
@@ -169,10 +169,10 @@ si es satisfacible
     sage: ff.is_tautology()
     True
 
-    sage: f, g, h, i = propcalc.get_formulas("a->(b->c)", "a", "~c", "~b")
-
 Podemos también determinar si un conjunto de fórmulas es o no
 consistente, y si una fórmula es consecuencia lógica de otras
+
+    sage: f, g, h, i = propcalc.get_formulas("a->(b->c)", "a", "~c", "~b")
 
     sage: propcalc.consistent(f,g,h,i)
     True
