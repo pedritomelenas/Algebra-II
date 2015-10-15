@@ -8,3 +8,5 @@ Esta carpeta contiene una extensión de las funcionalidades de la librería [abs
 - Se ha introducido un nuevo atributo a los grupos: `parent`. Un grupo al crearse, tendrá `parent=None`. Si creamos un subgrupo de `G` a partir de un conjunto de generadores, o bien, el conjunto de subgrupos de `G`, todos tendrán `parent=G`.
 
 - La introducción de `parent` permite hacer intersecciones de subgrupos: `H.intersection(J)`.
+
+- Ahora hay también producto de subgrupos.
