@@ -232,7 +232,7 @@ class Group:
                all(Set(g * h for h in self) == Set(h * g for h in self) \
                    for g in other)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """ Returns the quotient group self / other """
         if not other.is_normal_subgroup(self):
             raise ValueError("other must be a normal subgroup of self")
@@ -242,7 +242,7 @@ class Group:
             h = x[0].pick()
             return Set(self.bin_op((h, g)) for g in x[1])
 
-        return Group(G, Function(cartesian(G , G), G, multiply_cosets))
+        return Group(G, Function(G.cartesian(G), G, multiply_cosets))
 
     def inverse(self, g):
         """Returns the inverse of elem"""
@@ -253,7 +253,17 @@ class Group:
                 return a
         raise RuntimeError("Didn't find an inverse for g")
 
-    #def __mul__(self, other):
+    def __mul__(self, other):
+        """Computes the product of self and other"""
+        if self.parent==None or other.parent==None:
+            raise TypeError("self and other must be subgroups of the same Group")
+        if self.parent != other.parent:
+            raise TypeError("self and other must be subgroups of the same Group")
+        gens=Set(self.generators())
+        geno=Set(other.generators())
+        c=[p[0]*p[1] for p in gens.cartesian(geno)]
+        return (self.parent).generate(c)
+
     def cartesian(self, other):
         """Returns the cartesian product of the two groups"""
         if not isinstance(other, Group):
@@ -319,7 +329,7 @@ class Group:
         H = self.generate(result)
 
         while len(H) < len(self):
-            result.append((self.Set - H.Set).pick())
+            result.append(next(iter(self.Set - H.Set)))
             H = self.generate(result)
 
         # The identity is always a redundant generator in nontrivial Groups
@@ -387,8 +397,10 @@ class Group:
             raise TypeError("self and other must be subgroups of the same Group")
         if self.parent != other.parent:
             raise TypeError("self and other must be subgroups of the same Group")
-        common = Set([e for e in self.Set if e in other.Set])
+        common = Set(self.Set & other.Set)
         return Group(common,Function(common.cartesian(common), common, self.bin_op),self.parent)
+
+
 class GroupHomomorphism(Function):
     """
     The definition of a Group Homomorphism
