@@ -244,6 +244,18 @@ class Group:
 
         return Group(G, Function(G.cartesian(G), G, multiply_cosets))
 
+    def __div__(self, other):
+        """ Returns the quotient group self / other """
+        if not other.is_normal_subgroup(self):
+            raise ValueError("other must be a normal subgroup of self")
+        G = Set(Set(self.bin_op((g, h)) for h in other.Set) for g in self.Set)
+
+        def multiply_cosets(x):
+            h = x[0].pick()
+            return Set(self.bin_op((h, g)) for g in x[1])
+
+        return Group(G, Function(G.cartesian(G), G, multiply_cosets))
+
     def inverse(self, g):
         """Returns the inverse of elem"""
         if not g in self.group_elems:
