@@ -311,9 +311,9 @@ class Group:
             if oldG == newG: break
             else: oldG = newG
         oldG = Set(g.elem for g in oldG)
-
-        return Group(oldG, self.bin_op.new_domains(oldG.cartesian(oldG), oldG),self)
-
+        if self.parent==None:
+            return Group(oldG, self.bin_op.new_domains(oldG.cartesian(oldG), oldG),self)
+        return Group(oldG, self.bin_op.new_domains(oldG.cartesian(oldG), oldG),self.parent)
     def is_cyclic(self):
         """Checks if self is a cyclic Group"""
         return any(g.order() == len(self) for g in self)
