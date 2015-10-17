@@ -32,7 +32,7 @@ class GroupElem:
 
         if not isinstance(other, GroupElem):
             raise TypeError("other is not a GroupElem")
-        return self.elem == other.elem
+        return (self.elem == other.elem) and (self.group==other.group)
 
     def __ne__(self, other):
         return not self == other
