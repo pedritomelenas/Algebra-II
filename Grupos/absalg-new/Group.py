@@ -119,7 +119,7 @@ class GroupElem:
 
 class Group:
     """Group definition"""
-    def __init__(self, G, bin_op, parent=None):
+    def __init__(self, G, bin_op, parent=None, check_ass=False, check_inv=False, identity=None, abelian=None):
         """Create a group, checking group axioms"""
 
         # Test types
@@ -130,32 +130,43 @@ class Group:
             raise TypeError("binary operation must have codomain equal to G")
         if bin_op.domain != G.cartesian(G):
             raise TypeError("binary operation must have domain equal to G x G")
+        if not(isinstance(check_ass,bool)):
+            raise TypeError("check_ass must be bool")
+        if not(isinstance(check_inv,bool)):
+            raise TypeError("check_inv must be bool")
+
 
         # Test associativity
-        if not all(bin_op((a, bin_op((b, c)))) == \
-                   bin_op((bin_op((a, b)), c)) \
-                   for a in G for b in G for c in G):
-            raise ValueError("binary operation is not associative")
-
+        if check_ass:
+            if not all(bin_op((a, bin_op((b, c)))) == \
+                       bin_op((bin_op((a, b)), c)) \
+                       for a in G for b in G for c in G):
+                raise ValueError("binary operation is not associative")
         # Find the identity
-        found_id = False
-        for e in G:
-            if all(bin_op((e, a)) == a for a in G):
-                found_id = True
-                break
-        if not found_id:
-            raise ValueError("G doesn't have an identity")
+        if identity in G:
+            e=identity
+        else:
+            found_id = False
+            for e in G:
+                if all(bin_op((e, a)) == a for a in G):
+                    found_id = True
+                    break
+            if not found_id:
+                raise ValueError("G doesn't have an identity")
 
         # Test for inverses
-        for a in G:
-            if not any(bin_op((a,  b)) == e for b in G):
-                raise ValueError("G doesn't have inverses")
+        if check_inv:
+            for a in G:
+                if not any(bin_op((a,  b)) == e for b in G):
+                    raise ValueError("G doesn't have inverses")
 
         # At this point, we've verified that we have a Group.
         # Now determine if the Group is abelian:
-        self.abelian = all(bin_op((a, b)) == bin_op((b, a)) \
-                           for a in G for b in G)
-
+        if not(isinstance(abelian,bool)):
+            self.abelian = all(bin_op((a, b)) == bin_op((b, a)) \
+                               for a in G for b in G)
+        else:
+            self.abelian=abelian
         self.Set = G
         self.group_elems = Set(GroupElem(g, self) for g in G)
         self.e = GroupElem(e, self)
@@ -188,7 +199,9 @@ class Group:
         return len(self.Set)
 
     def __str__(self):
-        """Returns the Cayley table"""
+        return "Group with "+str(len(self))+" elements"
+    def table(self):
+        """Prints the Cayley table"""
 
         letters = "eabcdfghijklmnopqrstuvwxyz"
         if len(self) > len(letters):
@@ -214,7 +227,8 @@ class Group:
                                          for l1 in letters) + \
                               " |\n" for l in letters)
         result += border
-        return result
+        print(result)
+        
 
     def is_abelian(self):
         """Checks if the group is abelian"""
@@ -286,8 +300,10 @@ class Group:
                              self.Set.cartesian(other.Set), \
                              lambda x: (self.bin_op((x[0][0], x[1][0])), \
                                         other.bin_op((x[0][1], x[1][1]))))
-
-        return Group((self.Set).cartesian(other.Set), bin_op)
+        ab=False
+        if self.is_abelian() and other.is_abelian():
+            ab=True
+        return Group((self.Set).cartesian(other.Set), bin_op, check_ass=False, check_inv=False, identity=(self.e.elem, other.e.elem),abelian=ab)
 
     def generate(self, elems):
         """
@@ -315,7 +331,7 @@ class Group:
         oldG = Set(g.elem for g in oldG)
         if self.parent==None:
             return Group(oldG, self.bin_op.new_domains(oldG.cartesian(oldG), oldG),self)
-        return Group(oldG, self.bin_op.new_domains(oldG.cartesian(oldG), oldG),self.parent)
+        return Group(oldG, self.bin_op.new_domains(oldG.cartesian(oldG), oldG),self.parent,check_ass=False,check_inv=False, identity=self.e.elem, abelian=self.abelian)
     def is_cyclic(self):
         """Checks if self is a cyclic Group"""
         return any(g.order() == len(self) for g in self)
@@ -412,7 +428,7 @@ class Group:
         if self.parent != other.parent:
             raise TypeError("self and other must be subgroups of the same Group")
         common = Set(self.Set & other.Set)
-        return Group(common,Function(common.cartesian(common), common, self.bin_op),self.parent)
+        return Group(common,Function(common.cartesian(common), common, self.bin_op),self.parent,check_ass=False,check_inv=False,identity=self.e.elem)
 
 
 class GroupHomomorphism(Function):
