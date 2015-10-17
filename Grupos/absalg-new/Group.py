@@ -51,6 +51,8 @@ class GroupElem:
         if not isinstance(other, GroupElem):
             raise TypeError("other must be a GroupElem, or an int " \
                             "(if self's group is abelian)")
+        if not(self.group==other.group):
+            raise TypeError("both elements must be in the same group")
         try:
             return GroupElem(self.group.bin_op((self.elem, other.elem)), \
                              self.group)
