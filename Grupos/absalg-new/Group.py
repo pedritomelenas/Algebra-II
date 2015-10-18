@@ -32,7 +32,7 @@ class GroupElem:
 
         if not isinstance(other, GroupElem):
             raise TypeError("other is not a GroupElem")
-        return (self.elem == other.elem) and (self.group==other.group)
+        return (self.elem == other.elem) and (self.group.parent==other.group.parent)
 
     def __ne__(self, other):
         return not self == other
@@ -51,7 +51,7 @@ class GroupElem:
         if not isinstance(other, GroupElem):
             raise TypeError("other must be a GroupElem, or an int " \
                             "(if self's group is abelian)")
-        if not(self.group==other.group):
+        if not(self.group.parent==other.group.parent):
             raise TypeError("both elements must be in the same group")
         try:
             return GroupElem(self.group.bin_op((self.elem, other.elem)), \
@@ -171,7 +171,10 @@ class Group:
         self.group_elems = Set(GroupElem(g, self) for g in G)
         self.e = GroupElem(e, self)
         self.bin_op = bin_op
-        self.parent=parent
+        if parent==None:
+            self.parent=self
+        else:
+            self.parent=parent
 
     def __iter__(self):
         """Iterate over the GroupElems in G, returning the identity first"""
@@ -350,7 +353,7 @@ class Group:
         oldG = Set(g.elem for g in oldG)
         if self.parent==None:
             return Group(oldG, self.bin_op.new_domains(oldG.cartesian(oldG), oldG),self)
-        return Group(oldG, self.bin_op.new_domains(oldG.cartesian(oldG), oldG),self.parent,check_ass=False,check_inv=False, identity=self.e.elem, abelian=self.abelian)
+        return Group(oldG, self.bin_op.new_domains(oldG.cartesian(oldG), oldG),parent=self.parent,check_ass=False,check_inv=False, identity=self.e.elem, abelian=self.abelian)
     def is_cyclic(self):
         """Checks if self is a cyclic Group"""
         return any(g.order() == len(self) for g in self)
@@ -494,13 +497,16 @@ def Zn(n):
     """Returns the cylic group of order n"""
     G = Set(range(n))
     bin_op = Function(G.cartesian(G), G, lambda x: (x[0] + x[1]) % n)
-    return Group(G, bin_op)
+    return Group(G, bin_op,check_ass=False,check_inv=False,identity=0,abelian=True)
 
 def Sn(n):
     """Returns the symmetric group of order n! """
     G = Set(g for g in itertools.permutations(list(range(1,n+1))))
     bin_op = Function(G.cartesian(G), G, lambda x: tuple(x[0][j-1] for j in x[1]))
-    return Group(G, bin_op)
+    if n>2:
+        return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=False)
+    return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=True)
+
 
 def Dn(n):
     """Returns the dihedral group of order 2n """
