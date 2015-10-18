@@ -525,3 +525,12 @@ def Dn(n):
             else:
                 return "R%d" % ((x1 - x2) % n)
     return Group(G, Function(G.cartesian(G), G, multiply_symmetries))
+
+def cycle(c,n):
+    """Returns a tuple that represents the (permutation) cycle given by c """
+    m=len(c)
+    p=[i+1 for i in range(n)]
+    for i in range(1,n+1):
+        if (i in c):
+            p[i-1]=c[(c.index(i)+1)%m]
+    return tuple(p)
