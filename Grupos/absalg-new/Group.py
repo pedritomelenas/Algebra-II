@@ -215,20 +215,39 @@ class Group:
             toelem[letter] = elem
         letters = letters[:len(self)]
 
-        # Display the mapping:
-        result = "\n".join("%s: %s" % (l, toelem[l]) for l in letters) + "\n\n"
+        try:
+            __IPYTHON__
+            from IPython.display import display, HTML
+            style="<head><style>\ntable, th, td {border: 1px solid black;\n border-collapse: collapse;}\n th, td {padding: 15px;}</style></head>"
+            result =style+ " ".join("%s = %s <p/>\n" % (l, toelem[l]) for l in letters)
 
-        # Make the graph
-        head = "   | " + " | ".join(l for l in letters) + " |"
-        border = (len(self) + 1) * "---+" + "\n"
-        result += head + "\n" + border
-        result += border.join(" %s | " % l + \
-                              " | ".join(toletter[toelem[l] * toelem[l1]] \
-                                         for l1 in letters) + \
-                              " |\n" for l in letters)
-        result += border
-        print(result)
-        
+            # Make the graph
+            head = "<p/>\n <table>"
+            head = head+ "\n <tr> <td> * </td> " + " ".join("<td>"+l+"</td>" for l in letters) + " </tr>\n"
+            border = "\n "
+            result += head
+            result += border.join("<tr> <td> %s  </td> " % l + \
+                                  "  ".join("<td>"+toletter[toelem[l] * toelem[l1]]+"</td>" \
+                                             for l1 in letters) + \
+                                  "</tr>" for l in letters)
+            result += "\n </table>"
+
+            display(HTML(result),metadata=dict(isolated=True))
+        except NameError:
+            # Display the mapping:
+            result = "\n".join("%s: %s" % (l, toelem[l]) for l in letters) + "\n\n"
+
+            # Make the graph
+            head = "   | " + " | ".join(l for l in letters) + " |"
+            border = (len(self) + 1) * "---+" + "\n"
+            result += head + "\n" + border
+            result += border.join(" %s | " % l + \
+                                  " | ".join(toletter[toelem[l] * toelem[l1]] \
+                                             for l1 in letters) + \
+                                  " |\n" for l in letters)
+            result += border
+            print(result)
+
 
     def is_abelian(self):
         """Checks if the group is abelian"""
