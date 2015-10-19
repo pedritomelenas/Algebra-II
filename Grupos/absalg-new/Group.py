@@ -509,6 +509,14 @@ def Sn(n):
         return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=False)
     return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=True)
 
+def An(n):
+    """Returns the alternating group: the subgroup of even permutations of Sn(n)"""
+    G = Set(g for g in itertools.permutations(list(range(1,n+1))) if permutation(g).sign()==1)
+    bin_op = Function(G.cartesian(G), G, lambda x: tuple(x[0][j-1] for j in x[1]))
+    if n>2:
+        return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=False,parent=Sn(n))
+    return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=True,parent=Sn(n))
+
 
 def Dn(n):
     """Returns the dihedral group of order 2n """

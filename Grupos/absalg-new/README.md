@@ -24,6 +24,8 @@ GroupElem(t,S3).elem​
 Out[12]: (2, 1, 3)
 ```
 
+- Añadido An(n), el grupo alternado
+
 ## Permutaciones
 
 - Tenemos ahora permutaciones y ciclos.
