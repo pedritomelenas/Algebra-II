@@ -23,3 +23,17 @@ In [12]: S3=Sn(3)
 GroupElem(t,S3).elem​
 Out[12]: (2, 1, 3)
 ```
+
+## Permutaciones
+
+- Tenemos ahora permutaciones y ciclos.
+
+- Las permutaciones pueden ser vistas como elementos de S_n
+
+## Todo
+
+- Centralizador
+
+- Órbitas
+
+- conjugados
