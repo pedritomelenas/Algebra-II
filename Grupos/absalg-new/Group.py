@@ -268,8 +268,11 @@ class Group:
 
     def is_normal_subgroup(self, other):
         """Checks if self is a normal subgroup of other"""
-        return self <= other and \
-               all(Set(g * h for h in self) == Set(h * g for h in self) \
+        if not(self<=other):
+            return False
+        if other.is_abelian():
+            return True
+        return all(Set(g * h for h in self) == Set(h * g for h in self) \
                    for g in other)
 
     def __truediv__(self, other):
