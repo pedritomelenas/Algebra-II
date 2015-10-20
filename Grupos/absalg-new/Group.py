@@ -642,6 +642,9 @@ class cycle:
             raise TypeError("expecting a tuple as argument")
         if len(t)!=len(set(t)):
             raise TypeError("a cycle cannot contain repeated elements")
+        n=max(set(t))
+        if not(set(t)<=set(range(1,n+1))):
+            raise TypeError("We are only considering permutations of {1..n}")
         self.tuple=t
     def order(self):
         return len(self.tuple)

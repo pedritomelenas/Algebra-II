@@ -36,6 +36,6 @@ Out[12]: (2, 1, 3)
 
 - Centralizador
 
-- Órbitas
+- Clases laterales
 
 - conjugados
