@@ -41,6 +41,12 @@ Out[12]: (2, 1, 3)
 
 ## Todo
 
+- Conjugado de un subgrupo
+
+- Clase de conjugación de un subgrupo
+
+- Normalizador
+
 - Mayor control de tipos de datos
 
 - Evitar ciertas comprobaciones en Function, cuando sabemos que está bien definida; lo mismo para GroupHomomorphism

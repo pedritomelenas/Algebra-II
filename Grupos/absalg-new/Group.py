@@ -483,6 +483,12 @@ class Group:
             G=[g for g in G if not(g in H)]
         return cls
 
+    def center(self):
+        """Computes the center of self: the subgroup of element g such that g*h=h*g for all h in G"""
+        G=Set([g.elem for g in self if all(g*h==h*g for h in self)])
+        op=self.bin_op.new_domains(G.cartesian(G),G)
+        return Group(G,op,parent=self.parent, check_ass=False, check_inv=False, abelian=self.is_abelian(),identity=self.e.elem)
+
 class GroupHomomorphism(Function): #we should add here check_well_defined, and check_group_axioms as options
     """
     The definition of a Group Homomorphism
