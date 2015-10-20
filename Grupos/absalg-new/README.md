@@ -26,6 +26,13 @@ Out[12]: (2, 1, 3)
 
 - Añadido An(n), el grupo alternado
 
+- Centralizador de un elemento
+
+- Clases laterales de subgrupos a*H y H*a
+
+- clase de conjugación de un elemento
+
+
 ## Permutaciones
 
 - Tenemos ahora permutaciones y ciclos.
@@ -33,9 +40,3 @@ Out[12]: (2, 1, 3)
 - Las permutaciones pueden ser vistas como elementos de S_n
 
 ## Todo
-
-- Centralizador
-
-- Clases laterales
-
-- conjugados

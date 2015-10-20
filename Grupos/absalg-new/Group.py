@@ -47,6 +47,9 @@ class GroupElem:
         If other is a group element, returns self * other.
         If other = n is an int, and self is in an abelian group, returns self**n
         """
+
+        if isinstance(other,Group) or isinstance(other,set):
+            return set([self*g for g in other])
         if self.group.is_abelian() and isinstance(other, (int)):
             return self ** other
 
@@ -114,6 +117,14 @@ class GroupElem:
             raise TypeError("self must be in an abelian group")
         return self * (other ** -1)
 
+    def conjugacy_class(self):
+        return set([g*self*g**-1 for g in self.group])
+
+    def centralizer(self):
+        G=Set([g.elem for g in self.group if g*self==self*g])
+        op=self.group.bin_op.new_domains(G.cartesian(G),G) #Function(G.cartesian(G),G,lambda x:x[0]*x[1])
+        return Group(G,op,parent=self.group.parent, check_ass=False, check_inv=False, abelian=self.group.is_abelian(),identity=self.group.e.elem)
+
     def order(self):
         """Returns the order of self in the Group"""
         return len(self.group.generate([self]))
@@ -121,7 +132,7 @@ class GroupElem:
 
 class Group:
     """Group definition"""
-    def __init__(self, G, bin_op, parent=None, check_ass=False, check_inv=False, identity=None, abelian=None):
+    def __init__(self, G, bin_op, parent=None, check_ass=True, check_inv=True, identity=None, abelian=None):
         """Create a group, checking group axioms"""
 
         # Test types
@@ -309,9 +320,12 @@ class Group:
         raise RuntimeError("Didn't find an inverse for g")
 
     def __mul__(self, other):
-        """Computes the product of self and other"""
-        if self.parent==None or other.parent==None:
-            raise TypeError("self and other must be subgroups of the same Group")
+        """
+        Computes the product of self and other;
+        other can be a group element and we get the lateral class
+        """
+        if isinstance(other,GroupElem):
+            return set([g*other for g in self])
         if self.parent != other.parent:
             raise TypeError("self and other must be subgroups of the same Group")
         gens=Set(self.generators())
@@ -642,9 +656,6 @@ class cycle:
             raise TypeError("expecting a tuple as argument")
         if len(t)!=len(set(t)):
             raise TypeError("a cycle cannot contain repeated elements")
-        n=max(set(t))
-        if not(set(t)<=set(range(1,n+1))):
-            raise TypeError("We are only considering permutations of {1..n}")
         self.tuple=t
     def order(self):
         return len(self.tuple)
