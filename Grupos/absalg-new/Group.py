@@ -118,7 +118,7 @@ class GroupElem:
         return self * (other ** -1)
 
     def conjugacy_class(self):
-        return set([g*self*g**-1 for g in self.group])
+        return frozenset([g*self*g**-1 for g in self.group])
 
     def centralizer(self):
         G=Set([g.elem for g in self.group if g*self==self*g])
@@ -216,6 +216,7 @@ class Group:
 
     def __str__(self):
         return "Group with "+str(len(self))+" elements"
+
     def table(self):
         """Prints the Cayley table"""
 
@@ -471,8 +472,18 @@ class Group:
         common = Set(self.Set & other.Set)
         return Group(common,Function(common.cartesian(common), common, self.bin_op),self.parent,check_ass=False,check_inv=False,identity=self.e.elem)
 
+    def conjugacy_classes(self):
+        """Compute the set of conjugacy clases of the elements of a group; see conjugacy_class of a group element"""
+        cls=set([])
+        G=list(self.group_elems)
+        while len(G)>1:
+            x=G[0]
+            H=x.conjugacy_class()
+            cls.add(H)
+            G=[g for g in G if not(g in H)]
+        return cls
 
-class GroupHomomorphism(Function):
+class GroupHomomorphism(Function): #we should add here check_well_defined, and check_group_axioms as options
     """
     The definition of a Group Homomorphism
 
@@ -501,12 +512,12 @@ class GroupHomomorphism(Function):
     def kernel(self):
         """Returns the kernel of the homomorphism as a Group object"""
         G = Set(g.elem for g in self.domain if self(g) == self.codomain.e)
-        return Group(G, self.domain.bin_op.new_domains(G.cartesian(G), G))
+        return Group(G, self.domain.bin_op.new_domains(G.cartesian(G), G),check_ass=False,check_inv=False,identity=self.domain.e.elem)
 
     def image(self):
         """Returns the image of the homomorphism as a Group object"""
         G = Set(g.elem for g in self._image())
-        return Group(G, self.codomain.bin_op.new_domains(G.cartesian(G), G))
+        return Group(G, self.codomain.bin_op.new_domains(G.cartesian(G), G),check_ass=False,check_inv=False,identity=self.codomain.e.elem)
 
     def is_isomorphism(self):
         return self.is_bijective()

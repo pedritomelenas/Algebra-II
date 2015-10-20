@@ -40,3 +40,9 @@ Out[12]: (2, 1, 3)
 - Las permutaciones pueden ser vistas como elementos de S_n
 
 ## Todo
+
+- Mayor control de tipos de datos
+
+- Evitar ciertas comprobaciones en Function, cuando sabemos que está bien definida; lo mismo para GroupHomomorphism
+
+- Get rid of Set?
