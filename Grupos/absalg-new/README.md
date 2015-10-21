@@ -32,6 +32,9 @@ Out[12]: (2, 1, 3)
 
 - clase de conjugación de un elemento
 
+- Clase de conjugación de un subgrupo
+
+- Normalizador
 
 ## Permutaciones
 
@@ -41,11 +44,7 @@ Out[12]: (2, 1, 3)
 
 ## Todo
 
-- Conjugado de un subgrupo
-
-- Clase de conjugación de un subgrupo
-
-- Normalizador
+- Conjugate
 
 - Mayor control de tipos de datos
 

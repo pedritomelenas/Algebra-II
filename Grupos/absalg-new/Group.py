@@ -487,7 +487,27 @@ class Group:
         """Computes the center of self: the subgroup of element g such that g*h=h*g for all h in G"""
         G=Set([g.elem for g in self if all(g*h==h*g for h in self)])
         op=self.bin_op.new_domains(G.cartesian(G),G)
-        return Group(G,op,parent=self.parent, check_ass=False, check_inv=False, abelian=self.is_abelian(),identity=self.e.elem)
+        return Group(G,op,parent=self.parent, check_ass=False, check_inv=False, abelian=True,identity=self.e.elem)
+
+    def conjugacy_class(self):
+        """Computes the set of g*self*g^-1 for all g in self.parent"""
+        cls=set([])
+        G=list(self.parent.group_elems)
+        H=list(self.group_elems)
+        for g in G:
+            N=frozenset([g*h*g**-1 for h in H])
+            cls.add(N)
+        return cls
+
+    def normalizer(self):
+        """Computes the normalizer of self in self.parent"""
+        if self.Set==self.parent.Set:
+            return self
+        G=list(self.parent.group_elems)
+        H=list(self.group_elems)
+        N=Set([g.elem for g in G if set([g*h for h in H])==set([h*g for h in H])])
+        op=self.bin_op.new_domains(N.cartesian(N),N)
+        return Group(N,op,parent=self.parent, check_ass=False, check_inv=False, identity=self.e.elem)
 
 class GroupHomomorphism(Function): #we should add here check_well_defined, and check_group_axioms as options
     """
