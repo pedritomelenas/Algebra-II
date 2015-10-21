@@ -545,7 +545,7 @@ def Sn(n):
 
 def An(n):
     """Returns the alternating group: the subgroup of even permutations of Sn(n)"""
-    G = Set(g for g in itertools.permutations(list(range(1,n+1))) if permutation(g).sign()==1)
+    G = Set(g for g in itertools.permutations(list(range(1,n+1))) if permutation(list(g)).sign()==1)
     bin_op = Function(G.cartesian(G), G, lambda x: tuple(x[0][j-1] for j in x[1]))
     if n>2:
         return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=False,parent=Sn(n))
@@ -572,13 +572,19 @@ def Dn(n):
 
 class permutation:
     """Defines a permutation from a tuple of images"""
-    def __init__(self,t):
+    def __init__(self,*els):
+        if len(els)==1:
+            t=els[0]
+        else:
+            t=list(els)
         if not(isinstance(t,list)):
-            raise TypeError("expecting a list of integers as argument")
+            raise TypeError("expecting a list or sequence of integers as argument")
         n=len(t)
-        if set(t)!=(set(range(1,n+1))):
+        if n==0:
+            raise TypeError("to avoid ambiguity empty permutations are not allowed")
+        if set(t)!=set(range(1,n+1)):
             raise TypeError("the input is not a permutation of "+str(range(1,n+1)))
-        self.tuple=t
+        self.tuple=tuple(t)
         self.length=n
 
     def __str__(self):
