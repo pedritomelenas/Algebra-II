@@ -642,9 +642,14 @@ class permutation:
         """Composition of other and self"""
         if not(isinstance(other,permutation)):
             raise TypeError("other must also be a permutation")
-        p=self.tuple
-        q=other.tuple
+        p=list(self.tuple)
+        q=list(other.tuple)
         n=len(p)
+        m=len(q)
+        if n>m:
+            q=q+list(range(m+1,n+1))
+        if m>n:
+            p=p+list(range(n+1,m+1))
         if not(n==len(q)):
             raise TypeError("both permutations must have the same length")
         o=[p[q[i-1]-1] for i in range(1,n+1)]
