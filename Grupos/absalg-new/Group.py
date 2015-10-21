@@ -598,14 +598,21 @@ class permutation:
         else:
             t=list(els)
         if not(isinstance(t,list)):
-            raise TypeError("expecting a list or sequence of integers as argument")
+            raise TypeError("expecting a list or sequence of integers or tuples of integers as argument")
         n=len(t)
         if n==0:
             raise TypeError("to avoid ambiguity empty permutations are not allowed")
-        if set(t)!=set(range(1,n+1)):
-            raise TypeError("the input is not a permutation of "+str(range(1,n+1)))
-        self.tuple=tuple(t)
-        self.length=n
+        if all(isinstance(x,int) for x in t):
+            if set(t)!=set(range(1,n+1)):
+                raise TypeError("the input is not a permutation of "+str(range(1,n+1)))
+            self.tuple=tuple(t)
+            self.length=n
+        elif all(isinstance(x,tuple) for x in t):
+            p=tuples2permutation(t)
+            self.tuple=p.tuple
+            self.length=p.length
+        else:
+            raise TypeError("expecting a list or sequence of integers or tuples of integers as argument")
 
     def __str__(self):
         s=str(list(self.tuple))+" = "
