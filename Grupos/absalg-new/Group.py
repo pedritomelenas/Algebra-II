@@ -573,8 +573,8 @@ def Dn(n):
 class permutation:
     """Defines a permutation from a tuple of images"""
     def __init__(self,t):
-        if not(isinstance(t,tuple)):
-            raise TypeError("expecting a tuple as argument")
+        if not(isinstance(t,list)):
+            raise TypeError("expecting a list of integers as argument")
         n=len(t)
         if set(t)!=(set(range(1,n+1))):
             raise TypeError("the input is not a permutation of "+str(range(1,n+1)))
@@ -582,7 +582,15 @@ class permutation:
         self.length=n
 
     def __str__(self):
-        return str(self.tuple)
+        s=str(list(self.tuple))+" = "
+        cs=self.disjoint_cycles()
+        s2=str(" ")
+        for c in cs:
+            if len(c.tuple)>1:
+                s2=s2+str(c.tuple)
+        if s2==str(" "):
+            return s+"( )"
+        return s+s2
 
     def __eq__(self, other):
         """
@@ -607,14 +615,14 @@ class permutation:
         if not(n==len(q)):
             raise TypeError("both permutations must have the same length")
         o=[p[q[i-1]-1] for i in range(1,n+1)]
-        return permutation(tuple(o))
+        return permutation(o)
 
     def inverse(self):
         """Inverse of self"""
         l=list(self.tuple)
         n=len(l)
         p=[l.index(i)+1 for i in range(1,n+1)]
-        return permutation(tuple(p))
+        return permutation(p)
 
     def __pow__(self, n):
         """
@@ -625,7 +633,7 @@ class permutation:
 
         k=self.length
         if n == 0:
-            return permutation(tuple(range(1,k+1)))
+            return permutation(list(range(1,k+1)))
         elif n < 0:
             return self.inverse() ** -n
         elif n % 2 == 1:
@@ -646,7 +654,7 @@ class permutation:
                 c.append(e)
             l.append(cycle(tuple(c)))
             els=[a for a in els if not(a in c)]
-        return l
+        return l #[c for c in l if len(c.tuple)>1]
 
     def inversions(self):
         """List of inversions of self"""
@@ -674,6 +682,8 @@ class cycle:
         if len(t)!=len(set(t)):
             raise TypeError("a cycle cannot contain repeated elements")
         self.tuple=t
+    def __str__(self):
+        return str(self.tuple)
     def order(self):
         return len(self.tuple)
     def permutation(self,n=None):
@@ -686,7 +696,7 @@ class cycle:
         for i in range(1,n+1):
             if (i in c):
                 p[i-1]=c[(c.index(i)+1)%m]
-        return permutation(tuple(p))
+        return permutation((p))
 
 def tuples2permutation(l,n=None):
     """
