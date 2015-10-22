@@ -44,6 +44,10 @@ Out[12]: (2, 1, 3)
 
 ## Todo
 
+- Sn as permutations
+
+- Etiquetas a elementos y grupos
+
 - Conjugate
 
 - Mayor control de tipos de datos
