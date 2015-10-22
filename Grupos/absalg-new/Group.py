@@ -639,6 +639,9 @@ class permutation:
             return s+"( )"
         return s+s2
 
+    def __repr__(self):
+        return str(list(self.tuple))
+
     def __eq__(self, other):
         """
         Two GroupElems are equal if they represent the same element,
