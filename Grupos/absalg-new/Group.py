@@ -611,16 +611,20 @@ class permutation:
             t=els[0]
         else:
             t=list(els)
-        if not(isinstance(t,list)):
+        if not(isinstance(t,list)) and not(isinstance(t,tuple)):
             raise TypeError("expecting a list or sequence of integers or tuples of integers as argument")
         n=len(t)
         if n==0:
             raise TypeError("to avoid ambiguity empty permutations are not allowed")
-        if all(isinstance(x,int) for x in t):
+        if all(isinstance(x,int) for x in t) and isinstance(t,list):
             if set(t)!=set(range(1,n+1)):
                 raise TypeError("the input is not a permutation of "+str(range(1,n+1)))
             self.tuple=tuple(t)
             self.length=n
+        elif all(isinstance(x,int) for x in t) and isinstance(t,tuple):
+            p=cycle(t).permutation()
+            self.tuple=p.tuple
+            self.length=p.length
         elif all(isinstance(x,tuple) for x in t):
             p=tuples2permutation(t)
             self.tuple=p.tuple
@@ -640,7 +644,14 @@ class permutation:
         return s+s2
 
     def __repr__(self):
-        return str(list(self.tuple))
+        cs=self.disjoint_cycles()
+        s2=str(" ")
+        for c in cs:
+            if len(c.tuple)>1:
+                s2=s2+str(c.tuple)
+        if s2==str(" "):
+            return "( )"
+        return s2
 
     def __eq__(self, other):
         """
@@ -731,13 +742,22 @@ class permutation:
 
 class cycle:
     """Defines a cycle and operations between them yield permutations"""
-    def __init__(self,t):
+    def __init__(self,*els):
+        if len(els)==1:
+            t=els[0]
+        else:
+            t=tuple(els)
+
         if not(isinstance(t,tuple)):
-            raise TypeError("expecting a tuple as argument")
+            raise TypeError("expecting a tuple or a sequence of integers as argument")
         if len(t)!=len(set(t)):
             raise TypeError("a cycle cannot contain repeated elements")
         self.tuple=t
     def __str__(self):
+        return str(self.tuple)
+    def __repr__(self):
+        if len(self.tuple)<=1:
+            return str("( )")
         return str(self.tuple)
     def order(self):
         return len(self.tuple)
