@@ -225,13 +225,26 @@ class Group:
             return "This group is too big to print a Cayley table"
 
         # connect letters to elements
+        letters = "eabcdfghijklmnopqrstuvwxyz"
+        colors = ['Red','Yellow','Lime','Blue','Tan','YellowGreen','Violet','SkyBlue','Tomato',
+        'Plum','PaleGreen','Magenta','Mocassin','LightPink', 'LightCyan','Khaki','Ivory','Gray','Fuchsia',
+       'Green','Coral','Bisque','Aqua','Azure','DeepPink','Gainsboro','HotPink']
+        if len(self) > len(letters):
+            return "This group is too big to print a Cayley table"
+
+        # connect letters to elements
         toletter = {}
         toelem = {}
         for letter, elem in zip(letters, self):
             toletter[elem] = letter
             toelem[letter] = elem
         letters = letters[:len(self)]
-
+        tocletter = {}
+        tocolor = {}
+        for letter, color in zip(letters,colors):
+            tocolor[letter] = color
+            tocletter[color] = letter
+        colors = colors[:len(self)]
         try:
             __IPYTHON__
             from IPython.display import display, HTML
@@ -240,16 +253,17 @@ class Group:
 
             # Make the graph
             head = "<p/>\n <table>"
-            head = head+ "\n <tr> <td> * </td> " + " ".join("<td>"+l+"</td>" for l in letters) + " </tr>\n"
+            head = head+ "\n <tr> <td bgcolor='White'> * </td> " + " ".join("<td bgcolor="+tocolor[l]+">"+l+"</td>" for l in letters) + " </tr>\n"
             border = "\n "
             result += head
-            result += border.join("<tr> <td> %s  </td> " % l + \
-                                  "  ".join("<td>"+toletter[toelem[l] * toelem[l1]]+"</td>" \
+            result += border.join("<tr> <td bgcolor="+str(tocolor[l])+"> %s  </td> " % l + \
+                                  "  ".join("<td bgcolor="+tocolor[toletter[toelem[l] * toelem[l1]]]+">"+toletter[toelem[l] * toelem[l1]]+"</td>" \
                                              for l1 in letters) + \
                                   "</tr>" for l in letters)
             result += "\n </table>"
 
             display(HTML(result),metadata=dict(isolated=True))
+
         except NameError:
             # Display the mapping:
             result = "\n".join("%s: %s" % (l, toelem[l]) for l in letters) + "\n\n"
