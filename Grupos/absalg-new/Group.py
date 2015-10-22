@@ -607,6 +607,17 @@ def Dn(n):
 class permutation:
     """Defines a permutation from a tuple of images"""
     def __init__(self,*els):
+        def cycle2perm(c):
+            """Returns a tuple that represents the (permutation) cycle given by c """
+            m=len(c)
+            if len==0: #this will not happen
+                return tuple([1])
+            n=max(c)
+            p=[i+1 for i in range(n)]
+            for i in range(1,n+1):
+                if (i in c):
+                    p[i-1]=c[(c.index(i)+1)%m]
+            return permutation(p)
         if len(els)==1:
             t=els[0]
         else:
@@ -622,11 +633,12 @@ class permutation:
             self.tuple=tuple(t)
             self.length=n
         elif all(isinstance(x,int) for x in t) and isinstance(t,tuple):
-            p=cycle(t).permutation()
+            p=cycle2perm(t)
             self.tuple=p.tuple
             self.length=p.length
         elif all(isinstance(x,tuple) for x in t):
-            p=tuples2permutation(t)
+            cs=[cycle2perm(c) for c in t]
+            p=functools.reduce(operator.mul,cs)
             self.tuple=p.tuple
             self.length=p.length
         else:
@@ -637,8 +649,8 @@ class permutation:
         cs=self.disjoint_cycles()
         s2=str(" ")
         for c in cs:
-            if len(c.tuple)>1:
-                s2=s2+str(c.tuple)
+            if len(c)>1:
+                s2=s2+str(c)
         if s2==str(" "):
             return s+"( )"
         return s+s2
@@ -647,8 +659,8 @@ class permutation:
         cs=self.disjoint_cycles()
         s2=str(" ")
         for c in cs:
-            if len(c.tuple)>1:
-                s2=s2+str(c.tuple)
+            if len(c)>1:
+                s2=s2+str(c)
         if s2==str(" "):
             return "( )"
         return s2
@@ -674,13 +686,12 @@ class permutation:
         q=list(other.tuple)
         n=len(p)
         m=len(q)
+        mx=max([n,m])
         if n>m:
             q=q+list(range(m+1,n+1))
         if m>n:
             p=p+list(range(n+1,m+1))
-        if not(n==len(q)):
-            raise TypeError("both permutations must have the same length")
-        o=[p[q[i-1]-1] for i in range(1,n+1)]
+        o=[p[q[i-1]-1] for i in range(1,mx+1)]
         return permutation(o)
 
     def inverse(self):
@@ -708,7 +719,7 @@ class permutation:
             return (self * self) ** (n // 2)
 
     def disjoint_cycles(self):
-        """Returns a list of disjoint cycles whose product is self"""
+        """Returns a list of disjoint cycles (as tuples) whose product is self"""
         l=[]
         p=list(self.tuple)
         els=set(p)
@@ -718,7 +729,7 @@ class permutation:
             while not(p[e-1] in c):
                 e=p[e-1]
                 c.append(e)
-            l.append(cycle(tuple(c)))
+            l.append(tuple(c))
             els=[a for a in els if not(a in c)]
         return l #[c for c in l if len(c.tuple)>1]
 
@@ -734,69 +745,8 @@ class permutation:
 
     def order(self):
         """The order of self, that is, min n such that self**n=identity"""
-        l=[c.order() for c in self.disjoint_cycles()]
+        l=[len(c) for c in self.disjoint_cycles()]
         return (functools.reduce(operator.mul,l))//(functools.reduce(gcd,l))
 
     def as_GroupElem(self):
         return GroupElem(self.tuple,Sn(self.length))
-
-class cycle:
-    """Defines a cycle and operations between them yield permutations"""
-    def __init__(self,*els):
-        if len(els)==1:
-            t=els[0]
-        else:
-            t=tuple(els)
-
-        if not(isinstance(t,tuple)):
-            raise TypeError("expecting a tuple or a sequence of integers as argument")
-        if len(t)!=len(set(t)):
-            raise TypeError("a cycle cannot contain repeated elements")
-        self.tuple=t
-    def __str__(self):
-        return str(self.tuple)
-    def __repr__(self):
-        if len(self.tuple)<=1:
-            return str("( )")
-        return str(self.tuple)
-    def order(self):
-        return len(self.tuple)
-    def permutation(self,n=None):
-        """Returns a tuple that represents the (permutation) cycle given by c """
-        c=self.tuple
-        m=len(c)
-        if n==None:
-            n=max(c)
-        p=[i+1 for i in range(n)]
-        for i in range(1,n+1):
-            if (i in c):
-                p[i-1]=c[(c.index(i)+1)%m]
-        return permutation((p))
-
-def tuples2permutation(l,n=None):
-    """
-    The list l contains a list of tuples that represent cycles. The output is the product of them.
-    The optional argument n is ment to see all cycles in S_n
-    """
-    s=[set(t) for t in l]
-    m=max(set.union(*s))
-    if n==None:
-        n=m
-    if m>n:
-        raise TypeError("Some cycles have entries larger than the second argument")
-    cs=[cycle(t).permutation(n) for t in l]
-    return functools.reduce(operator.mul,cs)
-
-def cycles2permutation(l,n=None):
-    """
-    The list l contains a list of cycles. The output is the product of them.
-    The optional argument n is ment to see all cycles in S_n
-    """
-    s=[set(t.tuple) for t in l]
-    m=max(set.union(*s))
-    if n==None:
-        n=m
-    if m>n:
-        raise TypeError("Some cycles have entries larger than the second argument")
-    cs=[t.permutation(n) for t in l]
-    return functools.reduce(operator.mul,cs)
