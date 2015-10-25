@@ -36,15 +36,27 @@ Out[12]: (2, 1, 3)
 
 - Normalizador
 
+- Introducido SymmetricGroup
+
+- Ahora un grupo es "callable"
+```python
+>>> G=SymmetricGroup(3)
+>>> p=GroupElem(permutation(3,2,1),G)
+>>> q=G(permutation(3,2,1))
+>>> p==q
+True
+```
+- Los elementos del grupo tienen `repr`
+
+
 ## Permutaciones
 
-- Tenemos ahora permutaciones y ciclos.
+- Tenemos ahora permutaciones
 
 - Las permutaciones pueden ser vistas como elementos de S_n
 
-## Todo
 
-- Sn as permutations
+## Todo
 
 - Etiquetas a elementos y grupos
 

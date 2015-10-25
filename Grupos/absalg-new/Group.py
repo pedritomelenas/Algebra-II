@@ -26,6 +26,9 @@ class GroupElem:
     def __str__(self):
         return str(self.elem)
 
+    def __repr__(self):
+        return repr(self.elem)
+
     def __eq__(self, other):
         """
         Two GroupElems are equal if they represent the same element,
@@ -207,6 +210,9 @@ class Group:
 
         return id(self) == id(other) or \
                (self.Set == other.Set and self.bin_op == other.bin_op)
+
+    def __call__(self,el):
+        return GroupElem(el,self)
 
     def __ne__(self, other):
         return not self == other
@@ -577,6 +583,14 @@ def Sn(n):
         return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=False)
     return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=True)
 
+def SymmetricGroup(n):
+    """Returns the symmetric group of order n! """
+    G = Set(permutation(list(g)) for g in itertools.permutations(list(range(1,n+1))))
+    bin_op = Function(G.cartesian(G), G, lambda x: x[0]*x[1])
+    if n>2:
+        return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=False)
+    return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=True)
+
 def An(n):
     """Returns the alternating group: the subgroup of even permutations of Sn(n)"""
     G = Set(g for g in itertools.permutations(list(range(1,n+1))) if permutation(list(g)).sign()==1)
@@ -643,6 +657,9 @@ class permutation:
             self.length=p.length
         else:
             raise TypeError("expecting a list or sequence of integers or tuples of integers as argument")
+
+    def __hash__(self):
+        return hash(self.tuple)
 
     def __str__(self):
         s=str(list(self.tuple))+" = "
