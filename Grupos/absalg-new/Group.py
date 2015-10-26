@@ -591,6 +591,16 @@ def SymmetricGroup(n):
         return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=False)
     return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=True)
 
+
+def AlternatingGroup(n):
+    """Returns the alternating group: the subgroup of even permutations of Sn(n)"""
+    G = Set(permutation(list(g)) for g in itertools.permutations(list(range(1,n+1))) if permutation(list(g)).sign()==1)
+    bin_op = Function(G.cartesian(G), G, lambda x: x[0]*x[1])
+    if n>2:
+        return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=False,parent=SymmetricGroup(n))
+    return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=True,parent=SymmetricGroup(n))
+
+
 def An(n):
     """Returns the alternating group: the subgroup of even permutations of Sn(n)"""
     G = Set(g for g in itertools.permutations(list(range(1,n+1))) if permutation(list(g)).sign()==1)
