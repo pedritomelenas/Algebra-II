@@ -612,7 +612,7 @@ def An(n):
 
 def Dn(n):
     """Returns the dihedral group of order 2n """
-    G = Set("%s%d" % (l, x) for l in "RS" for x in xrange(n))
+    G = Set("%s%d" % (l, x) for l in "RS" for x in range(n))
     def multiply_symmetries(x):
         l1, l2 = x[0][0], x[1][0]
         x1, x2 = int(x[0][1:]), int(x[1][1:])
