@@ -629,10 +629,37 @@ def Dn(n):
     return Group(G, Function(G.cartesian(G), G, multiply_symmetries))
 
 class permutation:
-    """Defines a permutation from a tuple of images"""
+    """
+    This is the class of permutations of the set {1..n}
+
+    Attributes:
+        tuple: a tuple of n integers that stores the images of 1..n under the permutation
+        length: n with the above notation
+    """
     def __init__(self,*els):
+        """
+        Defines a permutation
+
+        Args:
+            *els: can be a list of integers or a list of tuples integers or a sequence of integers or a sequence of tuples of integers
+
+        Returns:
+            A permutation.
+            If a list or sequence of integers is given, then the output is the permutation that sends 1 to the firs element in the list or sequence, 2 to the second, and so on.
+            If a list or sequence of tuples is given, then they are considered as cycles, and the output is the product of these cycles.
+
+        Example:
+            >>> p=permutation([2,1,4,3])
+            >>> q=permutation((1,2),(3,4))
+            >>> p==q
+            True
+            >>> p=permutation(2,1,4,3)
+            >>> p==q
+            True
+
+        """
         def cycle2perm(c):
-            """Returns a tuple that represents the (permutation) cycle given by c """
+            """Returns a permuation corresponding to the cycle given by the tuple c"""
             m=len(c)
             if len==0: #this will not happen
                 return tuple([1])
@@ -693,10 +720,7 @@ class permutation:
         return s2
 
     def __eq__(self, other):
-        """
-        Two GroupElems are equal if they represent the same element,
-        regardless of the Groups they belong to
-        """
+        """Tests if the permutations are identical (with the same length)"""
 
         if not isinstance(other, permutation):
             raise TypeError("other is not a permutation")
@@ -706,7 +730,15 @@ class permutation:
         return not self == other
 
     def __mul__(self,other):
-        """Composition of other and self"""
+        """
+        Composition of permutations
+
+        Example:
+            >>> p=permutation((1,3))
+            >>> q=permutation([2,1,3])
+            >>> p*q
+             (1, 2, 3)
+        """
         if not(isinstance(other,permutation)):
             raise TypeError("other must also be a permutation")
         p=list(self.tuple)
@@ -722,7 +754,16 @@ class permutation:
         return permutation(o)
 
     def inverse(self):
-        """Inverse of self"""
+        """
+        Inverse of a permuatation (as a function)
+
+        Example:
+            >>> q=permutation([2,3,1])
+            >>> q
+             (1, 2, 3)
+            >>> q**-1
+             (1, 3, 2)
+        """
         l=list(self.tuple)
         n=len(l)
         p=[l.index(i)+1 for i in range(1,n+1)]
@@ -730,7 +771,14 @@ class permutation:
 
     def __pow__(self, n):
         """
-        Returns self**n
+        Returns the composition of a permutation n times
+
+        Example:
+            >>> q=permutation([2,3,1])
+            >>> q**3
+            ( )
+            >>> q*q==q**2
+            True
         """
         if not (isinstance(n, int)):
             raise TypeError("n must be an int or a long")
@@ -746,7 +794,14 @@ class permutation:
             return (self * self) ** (n // 2)
 
     def disjoint_cycles(self):
-        """Returns a list of disjoint cycles (as tuples) whose product is self"""
+        """
+        Returns a list of disjoint cycles (as tuples) whose product is the given permutation (argument)
+
+        Example:
+            >>> p=permutation([2,1,4,3])
+            >>> p.disjoint_cycles()
+            [(1, 2), (3, 4)]
+        """
         l=[]
         p=list(self.tuple)
         els=set(p)
@@ -761,19 +816,39 @@ class permutation:
         return l #[c for c in l if len(c.tuple)>1]
 
     def inversions(self):
-        """List of inversions of self"""
+        """
+        List of inversions of the given permutation p, that is, the set of pairs (i,j) in {1..n}^2 with i<j such that p(i)>p(j)
+
+        Example:
+            >>> q=permutation([2,3,1])
+            >>> q.inversions()
+            [(1, 3), (2, 3)]
+        """
         p=list(self.tuple)
         n=len(p)
         return [tuple([i,j]) for i in range(1,n+1) for j in range(i+1,n+1) if p[i-1]>p[j-1]]
 
     def sign(self):
-        """The sign of self"""
+        """
+        The sign of the permuation, that is, (-1)^i, with i the number of inversions of the permutation
+        Example:
+            >>> q=permutation([2,3,1])
+            >>> q.inversions()
+            [(1, 3), (2, 3)]
+            >>> q.sign()
+            1
+        """
         return (-1)**len(self.inversions())
 
     def order(self):
-        """The order of self, that is, min n such that self**n=identity"""
+        """
+        The order of the permutation, that is, minimum positive integer such that p**n==identity, with p the argument
+        Example:
+            >>> p=permutation([4,3,1,2])
+            >>> p.order()
+            4
+        """
         l=[len(c) for c in self.disjoint_cycles()]
+        if len(l)==1:
+            return l[0]
         return (functools.reduce(operator.mul,l))//(functools.reduce(gcd,l))
-
-    def as_GroupElem(self):
-        return GroupElem(self.tuple,Sn(self.length))
