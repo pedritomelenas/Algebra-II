@@ -673,7 +673,7 @@ def DihedralGroup(n, rep="RS"):
     if rep=="permutations":
         G=SymmetricGroup(n)
         r=G(permutation(tuple([i+1 for i in range(n)])))
-        s=G(permutation([(i+1,n-i) for i in range(n/2)]))
+        s=G(permutation([(i+1,n-i) for i in range(n//2)]))
         return G.generate([r,s])
     raise ValueError("Te second argument can be 'RS' or 'permutations'")
 
