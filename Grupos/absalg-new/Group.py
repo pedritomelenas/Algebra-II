@@ -684,7 +684,17 @@ def DihedralGroup(n, rep="RS"):
         r=G(permutation(tuple([i+1 for i in range(n)])))
         s=G(permutation([(i+1,n-i) for i in range(n//2)]))
         return G.generate([r,s])
-    raise ValueError("Te second argument can be 'RS' or 'permutations'")
+    raise ValueError("The second argument can be 'RS' or 'permutations'")
+
+def QuaternionGroup():
+    q2=[ "1", "-1", "i", "-i", "j", "-j", "k", "-k"]
+    table=[[ "1", "-1", "i", "-i", "j", "-j", "k", "-k"],[ "-1", "1", "-i", "i", "-j", "j", "-k", "k"],[ "i", "-i", "-1", "1", "k", "-k", "-j", "j"],[ "-i", "i", "1", "-1", "-k", "k", "j", "-j"],[ "j", "-j", "-k", "k", "-1", "1", "i", "-i"],[ "-j", "j", "k", "-k", "1", "-1", "-i", "i"],[ "k", "-k", "j", "-j", "-i", "i", "-1", "1"],[ "-k", "k", "-j", "j", "i", "-i", "1", "-1"]]
+    def product(a,b):
+        i=q2.index(a)
+        j=q2.index(b)
+        return table[i][j]
+    G=Set(q2)
+    return Group(G,Function(G.cartesian(G),G, lambda x: product(x[0],x[1])))
 
 class permutation:
     """
