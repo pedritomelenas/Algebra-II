@@ -687,6 +687,20 @@ def DihedralGroup(n, rep="RS"):
     raise ValueError("The second argument can be 'RS' or 'permutations'")
 
 def QuaternionGroup():
+    """
+    The quaternion group Q2; its elments are 1,i,j,k and their oposite
+
+    Example:
+        >>> Q2=QuaternionGroup()
+        >>> list(Q2)
+        ['1', 'i', 'k', 'j', '-i', '-k', '-j', '-1']
+        >>> i=Q2("i")
+        >>> j=Q2("j")
+        >>> i*j
+        'k'
+        >>> j*i
+        '-k'
+    """
     q2=[ "1", "-1", "i", "-i", "j", "-j", "k", "-k"]
     table=[[ "1", "-1", "i", "-i", "j", "-j", "k", "-k"],[ "-1", "1", "-i", "i", "-j", "j", "-k", "k"],[ "i", "-i", "-1", "1", "k", "-k", "-j", "j"],[ "-i", "i", "1", "-1", "-k", "k", "j", "-j"],[ "j", "-j", "-k", "k", "-1", "1", "i", "-i"],[ "-j", "j", "k", "-k", "1", "-1", "-i", "i"],[ "k", "-k", "j", "-j", "-i", "i", "-1", "1"],[ "-k", "k", "-j", "j", "i", "-i", "1", "-1"]]
     def product(a,b):
@@ -695,6 +709,28 @@ def QuaternionGroup():
         return table[i][j]
     G=Set(q2)
     return Group(G,Function(G.cartesian(G),G, lambda x: product(x[0],x[1])))
+
+def KleinGroup(rep="integers"):
+    """
+    The Klein four-group; it can be represented via "integers" as Z_2 x Z_2, and as a subgroup of permutations of A_4
+
+    Example:
+        >>> K=KleinGroup()
+        >>> KK=KleinGroup("permutations")
+        >>> KK.is_isomorphic(K)
+        True
+        >>> list(K)
+        [(0, 0), (0, 1), (1, 0), (1, 1)]
+        >>> list(KK)
+        [( ),  (1, 4)(2, 3),  (1, 3)(2, 4),  (1, 2)(3, 4)]
+    """
+    if rep=="integers":
+        G=CyclicGroup(2)
+        return G.cartesian(G)
+    if rep=="permutations":
+        G=AlternatingGroup(4)
+        return G.generate([permutation((1,2),(3,4)), permutation((1,3),(2,4))])
+    raise ValueError("The second argument can be 'RS' or 'permutations'")
 
 class permutation:
     """
