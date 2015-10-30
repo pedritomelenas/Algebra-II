@@ -31,8 +31,7 @@ class GroupElem:
 
     def __eq__(self, other):
         """
-        Two GroupElems are equal if they represent the same element,
-        regardless of the Groups they belong to
+        Two GroupElems are equal if they represent the same element in the same group
         """
 
         if not isinstance(other, GroupElem):
@@ -121,9 +120,15 @@ class GroupElem:
         return self * (other ** -1)
 
     def conjugacy_class(self):
+        """
+        Returns the conjugacy class of self in self.group
+        """
         return frozenset([g*self*g**-1 for g in self.group])
 
     def centralizer(self):
+        """
+        Returns the centralizer of self, that is, the set of elements that commute with self
+        """
         G=Set([g.elem for g in self.group if g*self==self*g])
         op=self.group.bin_op.new_domains(G.cartesian(G),G) #Function(G.cartesian(G),G,lambda x:x[0]*x[1])
         return Group(G,op,parent=self.group.parent, check_ass=False, check_inv=False, abelian=self.group.is_abelian(),identity=self.group.e.elem)
@@ -227,7 +232,9 @@ class Group:
         return "Group with "+str(len(self))+" elements"
 
     def table(self):
-        """Prints the Cayley table"""
+        """
+        Prints the Cayley table
+        """
 
         letters = "eabcdfghijklmnopqrstuvwxyz"
         if len(self) > len(letters):
@@ -238,8 +245,6 @@ class Group:
         colors = ['Red','Yellow','Lime','Blue','Tan','YellowGreen','Violet','SkyBlue','Tomato',
         'Plum','PaleGreen','Magenta','Mocassin','LightPink', 'LightCyan','Khaki','Ivory','Gray','Fuchsia',
        'Green','Coral','Bisque','Aqua','Azure','DeepPink','Gainsboro','HotPink']
-        if len(self) > len(letters):
-            return "This group is too big to print a Cayley table"
 
         # connect letters to elements
         toletter = {}
@@ -260,7 +265,7 @@ class Group:
             style="<head><style>\ntable, th, td {border: 1px solid black;\n border-collapse: collapse;}\n th, td {padding: 15px;}</style></head>"
             result =style+ " ".join("%s = %s <p/>\n" % (l, toelem[l]) for l in letters)
 
-            # Make the graph
+            # Make the table
             head = "<p/>\n <table>"
             head = head+ "\n <tr> <td bgcolor='White'> * </td> " + " ".join("<td bgcolor="+tocolor[l]+">"+l+"</td>" for l in letters) + " </tr>\n"
             border = "\n "
@@ -358,7 +363,9 @@ class Group:
         return (self.parent).generate(c)
 
     def cartesian(self, other):
-        """Returns the cartesian product of the two groups"""
+        """
+        Returns the cartesian product of the two groups
+        """
         if not isinstance(other, Group):
             raise TypeError("other must be a group")
         bin_op = Function(((self.Set).cartesian(other.Set)).cartesian((self.Set).cartesian(other.Set)), \
@@ -485,7 +492,9 @@ class Group:
         return bool(self.find_isomorphism(other))
 
     def intersection(self, other):
-        """Computes the intersection of self and other"""
+        """
+        Computes the intersection of self and other
+        """
         if self.parent==None or other.parent==None:
             raise TypeError("self and other must be subgroups of the same Group")
         if self.parent != other.parent:
