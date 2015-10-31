@@ -456,7 +456,7 @@ class Group:
         A = self.generators()
         for B in itertools.permutations(other, len(A)):
 
-            func = dict(itertools.izip(A, B)) # the mapping
+            func = dict(zip(A, B)) # the mapping
             counterexample = False
             while not counterexample:
 
