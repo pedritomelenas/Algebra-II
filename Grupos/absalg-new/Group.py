@@ -35,7 +35,7 @@ class GroupElem:
         """
 
         if not isinstance(other, GroupElem):
-            raise TypeError("other is not a GroupElem")
+            return False #raise TypeError("other is not a GroupElem")
         return (self.elem == other.elem) and (self.group.parent==other.group.parent)
 
     def __ne__(self, other):
@@ -263,7 +263,7 @@ class Group:
             __IPYTHON__
             from IPython.display import display, HTML
             style="<head><style>\ntable, th, td {border: 1px solid black;\n border-collapse: collapse;}\n th, td {padding: 15px;}</style></head>"
-            result =style+ " ".join("%s = %s <p/>\n" % (l, toelem[l]) for l in letters)
+            result =style+ " ".join("%s = %s &nbsp; \n" % (l, toelem[l]) for l in letters)
 
             # Make the table
             head = "<p/>\n <table>"
@@ -276,7 +276,7 @@ class Group:
                                   "</tr>" for l in letters)
             result += "\n </table>"
 
-            display(HTML(result),metadata=dict(isolated=True))
+            display(HTML(result))# this won't adjust the height correctly but displays better: metadata=dict(isolated=True))
 
         except NameError:
             # Display the mapping:
