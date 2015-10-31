@@ -1,5 +1,7 @@
 
 # Tutorial for `Group.py`
+This folder contains an extension of the [absalg](https://github.com/naftaliharris/Abstract-Algebra) library by [Naftali Harris](http://www.naftaliharris.com).
+
 We start by loading the library
 
 
