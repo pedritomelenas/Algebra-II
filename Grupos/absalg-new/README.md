@@ -1,93 +1,961 @@
-# Álgebra II
-## Extensión de absalg
 
-Esta carpeta contiene una extensión de las funcionalidades de la librería [absalg](https://github.com/naftaliharris/Abstract-Algebra) de [Naftali Harris](http://www.naftaliharris.com).
-
-### Permutaciones (nueva clase)
-
-- Tenemos ahora permutaciones: se pueden definir a partir
-  -  de listas o secuencias de enteros (representación matricial)
-  -  listas o secuencias de tuplas (producto de ciclos; cada tupla es un ciclo)
-
-- Tienen __str__  , __repr__ y __hash__.
-
-- Igualdad (cambiar)
-
-- Composición: p*q corresponde con (p*q)(i)=p(q(i))
-
-- Inverso
-
-- __pow__
-
-- Descomposición en ciclos disjuntos
-
-- Inversiones
-
-- Signo
-
-- Orden
-
-### GroupEleme
-
-- Centralizador de un elemento
-
-- clase de conjugación de un elemento
-
-- Los elementos del grupo tienen `repr`
+# Tutorial for `Group.py`
+We start by loading the library
 
 
-### Group
-
-- Se han incluido check_ass, check_inv, identity y abelian como posibles argumentos de `Group` para evitar detectar si el magma es asociativo, cerrado para inversos, tiene elemento neutro y si es o no abeliano. Entre otras ventajas, esto hace que $S_4\times S_4$ no tarde una eternidad en calcularse (esto se usa en el producto cartesiano, producto, intersección, subrupos y subgrupos generados por elementos).
-
-- Se ha cambiado el producto cartesiano que se denotaba por `G * G` por `G.cartesian(G)`.
-
-- Se ha introducido un nuevo atributo a los grupos: `parent`. Un grupo al crearse, tendrá `parent=el mismo`. Si creamos un subgrupo de `G` a partir de un conjunto de generadores, o bien, el conjunto de subgrupos de `G`, todos tendrán `parent=G`.
-
-- La introducción de `parent` permite hacer intersecciones de subgrupos: `H.intersection(J)`.
-
-- Ahora hay también producto de subgrupos: `H*G`.
-
-- Clases laterales de subgrupos a*H y H*a
-
-- Añadido AlternatingGroup(n), el grupo alternado
-
-- Cayley table now in colors if in python notebook
-
-- El conjunto de las clases de conjugación de los elementos de un grupo
-
-- Clase de conjugación de un subgrupo
-
-- Centro de un subgrupo
-
-- Normalizador
-
-- Introducido SymmetricGroup, que substituye a Sn. Ahora el grupo simétrico es un grupo de permutationes (nueva clase)
-
-- Introducido DihedralGroup, que substituye a Dn; permite "permutations" o "RS" como representaciones
-
-- Introducido CyclicGroup, que substituge a Zn; permite "integers" o "permutations" como representaciones
-
-- Ahora un grupo es "callable"
 ```python
->>> G=SymmetricGroup(3)
->>> p=GroupElem(permutation(3,2,1),G)
->>> q=G(permutation(3,2,1))
->>> p==q
-True
+from Group import *
 ```
 
-- Los grupos tienen __str__ y __repr__.
+## Defining a group
+Let us define a group from scratch. We need a set and a binary operation.
 
 
-## ToDo
+```python
+S=Set(range(5))
+b_op=Function(S.cartesian(S),S,lambda x: (x[0]+x[1])%5)
+G=Group(S,b_op)
+```
 
-- Etiquetas a elementos y grupos
+We can, for instance, list the elements in `G`. Observe that this is just a representation of them.
 
-- Conjugate
 
-- Mayor control de tipos de datos
+```python
+list(G)
+```
 
-- Evitar ciertas comprobaciones en Function, cuando sabemos que está bien definida; lo mismo para GroupHomomorphism
 
-- Get rid of Set?
+
+
+    [0, 1, 2, 3, 4]
+
+
+
+This does not mean that 1 is in `G`.
+
+
+```python
+1 in G
+```
+
+
+
+
+    False
+
+
+
+In order to see 1 in `G`, we need to create an instance of it as element in `G`. And then, we can operate with it.
+
+
+```python
+one=G(1)
+one*one
+```
+
+
+
+
+    2
+
+
+
+As in this case, `G` is abelian, we can even perform the last operation by using `+`.
+
+
+```python
+one+one
+```
+
+
+
+
+    2
+
+
+
+Also, in this case powers become multiples.
+
+
+```python
+one**3==3*one
+```
+
+
+
+
+    True
+
+
+
+The Cayley table of `G` can be calculated as follows (multiplicative table).
+
+
+```python
+G.table()
+```
+
+
+<head><style>
+table, th, td {border: 1px solid black;
+ border-collapse: collapse;}
+ th, td {padding: 15px;}</style></head>e = 0 &nbsp; 
+ a = 1 &nbsp; 
+ b = 2 &nbsp; 
+ c = 3 &nbsp; 
+ d = 4 &nbsp; 
+<p/>
+ <table>
+ <tr> <td bgcolor='White'> * </td> <td bgcolor=Red>e</td> <td bgcolor=Yellow>a</td> <td bgcolor=Lime>b</td> <td bgcolor=Blue>c</td> <td bgcolor=Tan>d</td> </tr>
+<tr> <td bgcolor=Red> e  </td> <td bgcolor=Red>e</td>  <td bgcolor=Yellow>a</td>  <td bgcolor=Lime>b</td>  <td bgcolor=Blue>c</td>  <td bgcolor=Tan>d</td></tr>
+ <tr> <td bgcolor=Yellow> a  </td> <td bgcolor=Yellow>a</td>  <td bgcolor=Lime>b</td>  <td bgcolor=Blue>c</td>  <td bgcolor=Tan>d</td>  <td bgcolor=Red>e</td></tr>
+ <tr> <td bgcolor=Lime> b  </td> <td bgcolor=Lime>b</td>  <td bgcolor=Blue>c</td>  <td bgcolor=Tan>d</td>  <td bgcolor=Red>e</td>  <td bgcolor=Yellow>a</td></tr>
+ <tr> <td bgcolor=Blue> c  </td> <td bgcolor=Blue>c</td>  <td bgcolor=Tan>d</td>  <td bgcolor=Red>e</td>  <td bgcolor=Yellow>a</td>  <td bgcolor=Lime>b</td></tr>
+ <tr> <td bgcolor=Tan> d  </td> <td bgcolor=Tan>d</td>  <td bgcolor=Red>e</td>  <td bgcolor=Yellow>a</td>  <td bgcolor=Lime>b</td>  <td bgcolor=Blue>c</td></tr>
+ </table>
+
+
+
+```python
+Set([i*one for i in range(10)])
+```
+
+
+
+
+    frozenset({1, 3, 2, 4, 0})
+
+
+
+We can indeed do this last operation by considering the group spanned by `one`; which is this case is `G` itself.
+
+
+```python
+H=G.generate([one])
+H==G
+```
+
+
+
+
+    True
+
+
+
+This means that this group is *cyclic*.
+
+
+```python
+G.is_cyclic()
+```
+
+
+
+
+    True
+
+
+
+The inverse of an element can be compute in several ways. 
+
+
+```python
+[G.inverse(one), one**-1]
+```
+
+
+
+
+    [4, 4]
+
+
+
+We can compute the lattice of subgroups of `G`.
+
+
+```python
+subgs=G.subgroups()
+```
+
+
+```python
+[list(i) for i in subgs]
+```
+
+
+
+
+    [[0], [0, 1, 2, 3, 4]]
+
+
+
+Since `G` is abelian, all its subgroups are normal.
+
+
+```python
+all(H.is_normal_subgroup(G) for H in subgs)
+```
+
+
+
+
+    True
+
+
+
+Indeed groups as `G` are quite common, this is why we dedided to write an specific function to define them: `CyclicGroup`. We will talk later more about it. 
+
+The function `CyclicGroup(n)` returns (as defaul) the group $(\mathbb{Z}_n,+)$.
+
+
+```python
+G.is_isomorphic(CyclicGroup(5))
+```
+
+
+
+
+    True
+
+
+
+## Cartesian product and quotients
+A way to obtain groups from others is by computing cartesian products, or quotients by normal subgroups.
+
+Let us, for instance, compute `G^2`
+
+
+```python
+G2=G.cartesian(G)
+```
+
+The elements of `G2` are tuples. We can as above, instanciate one of its elements.
+
+
+```python
+one2=G2((1,1))
+```
+
+We can define the cyclic group generated by `one2`, and check that indeed is a subgroup of `G2`.
+
+
+```python
+H=G2.generate([one2])
+H<=G2
+```
+
+
+
+
+    True
+
+
+
+Contrary to what happened above, in this case `H` is not `G2` itself; this is due to the fact that `G2` is no longer cyclic. Let us compute a system of generators of `G2`.
+
+
+```python
+H==G2
+```
+
+
+
+
+    False
+
+
+
+
+```python
+G2.is_cyclic()
+```
+
+
+
+
+    False
+
+
+
+
+```python
+G2.generators()
+```
+
+
+
+
+    [(1, 3), (1, 2)]
+
+
+
+We already know that every subgroup of an abelian group is normal, and so we can compute the quotient of `G2` by `H`.
+
+
+```python
+G2/H
+```
+
+
+
+
+    Group with 5 elements
+
+
+
+Its elements are congruency classes, and this is why when listing them, we get a lists of sets.
+
+
+```python
+Q=G2/H
+list(Q)
+```
+
+
+
+
+    [Set([(2, 2), (4, 4), (3, 3), (0, 0), (1, 1)]),
+     Set([(3, 0), (1, 3), (4, 1), (2, 4), (0, 2)]),
+     Set([(4, 3), (3, 2), (1, 0), (2, 1), (0, 4)]),
+     Set([(4, 2), (0, 3), (3, 1), (1, 4), (2, 0)]),
+     Set([(0, 1), (3, 4), (1, 2), (2, 3), (4, 0)])]
+
+
+
+
+```python
+Q.is_abelian()
+```
+
+
+
+
+    True
+
+
+
+
+```python
+Q.is_cyclic()
+```
+
+
+
+
+    True
+
+
+
+
+```python
+[list(J) for J in G2.subgroups()]
+```
+
+
+
+
+    [[(0, 0), (3, 0), (2, 0), (1, 0), (4, 0)],
+     [(0, 0), (2, 3), (3, 2), (4, 1), (1, 4)],
+     [(0, 0), (0, 1), (0, 3), (0, 2), (0, 4)],
+     [(0, 0)],
+     [(0, 0),
+      (1, 3),
+      (3, 0),
+      (2, 1),
+      (0, 3),
+      (4, 0),
+      (1, 2),
+      (3, 3),
+      (4, 4),
+      (2, 2),
+      (4, 1),
+      (1, 1),
+      (3, 2),
+      (0, 4),
+      (1, 4),
+      (2, 3),
+      (4, 2),
+      (1, 0),
+      (0, 1),
+      (3, 1),
+      (0, 2),
+      (2, 0),
+      (4, 3),
+      (3, 4),
+      (2, 4)],
+     [(0, 0), (4, 2), (1, 3), (3, 4), (2, 1)],
+     [(0, 0), (2, 2), (1, 1), (4, 4), (3, 3)],
+     [(0, 0), (1, 2), (3, 1), (2, 4), (4, 3)]]
+
+
+
+## Permutations
+
+Permutations are a fundamental tool for the study of groups. Indeed permutations (bijective maps) of the set $\{1,\ldots,n\}$ under composition are a group that is not abelian for $n\ge 3$.
+
+We have included a bunch of ways to define a permuation with the class `permutation`.
+
+- `permutation(list of integers)` creates a permutation in which the $i$ goes to the $i$th elmeent in the given list of integers.
+
+- `permutation(sequence of integers)` does the same as above, by considering the sequence as a list.
+
+- `permutation(sequence of tuples)` creates a permutation that is the product of the given tuples, by considering the tuples as cycles.
+
+- `permutation(list of tuples)` does the same as in the preceding case.
+
+
+
+```python
+permutation(2,3,1,4)==permutation([2,3,1,4])
+```
+
+
+
+
+    True
+
+
+
+
+```python
+permutation((1,2),(3,4))==permutation([(1,2),(3,4)])
+```
+
+
+
+
+    True
+
+
+
+Composition of permutations is performed by using the `*` operator; powers with `**`.
+
+
+```python
+p=permutation((1,2),(3,4))
+p*p
+```
+
+
+
+
+    ( )
+
+
+
+You may gues from the above output that we are displaying the identity map just by `( )`. Permutations are displayed as a product of disjoint cycles, and printed both in matrix representation and as a product of disjoint cycles.
+
+
+```python
+p
+```
+
+
+
+
+     (1, 2)(3, 4)
+
+
+
+
+```python
+print(p)
+```
+
+    [2, 1, 4, 3] =  (1, 2)(3, 4)
+
+
+
+```python
+p**-1==p
+```
+
+
+
+
+    True
+
+
+
+The order of a permutation is computed as follows.
+
+
+```python
+p.order()
+```
+
+
+
+
+    2
+
+
+
+Also we can compute its sign, inversions and decomposition into disjoint cycles.
+
+
+```python
+p.sign()
+```
+
+
+
+
+    1
+
+
+
+
+```python
+p.inversions()
+```
+
+
+
+
+    [(1, 2), (3, 4)]
+
+
+
+
+```python
+p.disjoint_cycles()
+```
+
+
+
+
+    [(1, 2), (3, 4)]
+
+
+
+## Groups of permutations
+
+As we mentioned above, permutations of $\{1,\ldots, n\}$ with composition as binary operation are a group, which is known as the symmetric group and it is denoted by $S_n$. We have a function to created groups of permutations.
+
+
+```python
+S3=SymmetricGroup(3)
+list(S3)
+```
+
+
+
+
+    [( ),  (2, 3),  (1, 3),  (1, 2),  (1, 3, 2),  (1, 2, 3)]
+
+
+
+
+```python
+p=S3(permutation(3,2,1))
+q=S3(permutation(2,1,3))
+```
+
+
+```python
+H=S3.generate([p,q])
+```
+
+
+```python
+H.group_elems
+```
+
+
+
+
+    frozenset({( ),  (1, 3),  (2, 3),  (1, 3, 2),  (1, 2),  (1, 2, 3)})
+
+
+
+An important subgroup of the symmetric group $S_n$ is the group of all even (sign=1) permutations, which is known as the alternating group and denoted by $A_n$. It is well known that $A_n$ is a normal subgroup of $S_n$.
+
+
+```python
+A3=AlternatingGroup(3)
+list(S3/A3)
+```
+
+
+
+
+    [Set([ (1, 2, 3),  (1, 3, 2), ( )]), Set([ (2, 3),  (1, 2),  (1, 3)])]
+
+
+
+And in this way we are listing odd and even permutations in separate sets.
+
+The symmetric group $S_n$ has always a "copy" of `CyclicGroup(n)`, which is the subgroup of $S_n$ spanned by the cycle $(1\ldots n)$. We can construct it as follows. 
+
+
+```python
+C3=CyclicGroup(3,"permutations")
+list(C3)
+```
+
+
+
+
+    [( ),  (1, 2, 3),  (1, 3, 2)]
+
+
+
+
+```python
+Z3=CyclicGroup(3)
+list(C3)
+```
+
+
+
+
+    [( ),  (1, 2, 3),  (1, 3, 2)]
+
+
+
+
+```python
+C3.is_isomorphic(Z3)
+```
+
+
+
+
+    True
+
+
+
+Another important subgroup of the $S_n$ is the dihedral group of movements that leave invariant an $n$-gon centered in the origin. This group can be represented either by permutations or by symmetries and rotations.
+
+
+```python
+D4=DihedralGroup(4)
+D4.table()
+```
+
+
+<head><style>
+table, th, td {border: 1px solid black;
+ border-collapse: collapse;}
+ th, td {padding: 15px;}</style></head>e = R0 &nbsp; 
+ a = R1 &nbsp; 
+ b = R2 &nbsp; 
+ c = R3 &nbsp; 
+ d = S3 &nbsp; 
+ f = S2 &nbsp; 
+ g = S1 &nbsp; 
+ h = S0 &nbsp; 
+<p/>
+ <table>
+ <tr> <td bgcolor='White'> * </td> <td bgcolor=Red>e</td> <td bgcolor=Yellow>a</td> <td bgcolor=Lime>b</td> <td bgcolor=Blue>c</td> <td bgcolor=Tan>d</td> <td bgcolor=YellowGreen>f</td> <td bgcolor=Violet>g</td> <td bgcolor=SkyBlue>h</td> </tr>
+<tr> <td bgcolor=Red> e  </td> <td bgcolor=Red>e</td>  <td bgcolor=Yellow>a</td>  <td bgcolor=Lime>b</td>  <td bgcolor=Blue>c</td>  <td bgcolor=Tan>d</td>  <td bgcolor=YellowGreen>f</td>  <td bgcolor=Violet>g</td>  <td bgcolor=SkyBlue>h</td></tr>
+ <tr> <td bgcolor=Yellow> a  </td> <td bgcolor=Yellow>a</td>  <td bgcolor=Lime>b</td>  <td bgcolor=Blue>c</td>  <td bgcolor=Red>e</td>  <td bgcolor=SkyBlue>h</td>  <td bgcolor=Tan>d</td>  <td bgcolor=YellowGreen>f</td>  <td bgcolor=Violet>g</td></tr>
+ <tr> <td bgcolor=Lime> b  </td> <td bgcolor=Lime>b</td>  <td bgcolor=Blue>c</td>  <td bgcolor=Red>e</td>  <td bgcolor=Yellow>a</td>  <td bgcolor=Violet>g</td>  <td bgcolor=SkyBlue>h</td>  <td bgcolor=Tan>d</td>  <td bgcolor=YellowGreen>f</td></tr>
+ <tr> <td bgcolor=Blue> c  </td> <td bgcolor=Blue>c</td>  <td bgcolor=Red>e</td>  <td bgcolor=Yellow>a</td>  <td bgcolor=Lime>b</td>  <td bgcolor=YellowGreen>f</td>  <td bgcolor=Violet>g</td>  <td bgcolor=SkyBlue>h</td>  <td bgcolor=Tan>d</td></tr>
+ <tr> <td bgcolor=Tan> d  </td> <td bgcolor=Tan>d</td>  <td bgcolor=YellowGreen>f</td>  <td bgcolor=Violet>g</td>  <td bgcolor=SkyBlue>h</td>  <td bgcolor=Red>e</td>  <td bgcolor=Yellow>a</td>  <td bgcolor=Lime>b</td>  <td bgcolor=Blue>c</td></tr>
+ <tr> <td bgcolor=YellowGreen> f  </td> <td bgcolor=YellowGreen>f</td>  <td bgcolor=Violet>g</td>  <td bgcolor=SkyBlue>h</td>  <td bgcolor=Tan>d</td>  <td bgcolor=Blue>c</td>  <td bgcolor=Red>e</td>  <td bgcolor=Yellow>a</td>  <td bgcolor=Lime>b</td></tr>
+ <tr> <td bgcolor=Violet> g  </td> <td bgcolor=Violet>g</td>  <td bgcolor=SkyBlue>h</td>  <td bgcolor=Tan>d</td>  <td bgcolor=YellowGreen>f</td>  <td bgcolor=Lime>b</td>  <td bgcolor=Blue>c</td>  <td bgcolor=Red>e</td>  <td bgcolor=Yellow>a</td></tr>
+ <tr> <td bgcolor=SkyBlue> h  </td> <td bgcolor=SkyBlue>h</td>  <td bgcolor=Tan>d</td>  <td bgcolor=YellowGreen>f</td>  <td bgcolor=Violet>g</td>  <td bgcolor=Yellow>a</td>  <td bgcolor=Lime>b</td>  <td bgcolor=Blue>c</td>  <td bgcolor=Red>e</td></tr>
+ </table>
+
+
+## Product and intersection of subgroups
+Product and intersection of subgroups of a group $G$ are again subgroups of $G$
+
+
+```python
+Dp4=DihedralGroup(4,"permutations")
+list(Dp4)
+```
+
+
+
+
+    [( ),
+      (1, 4, 3, 2),
+      (1, 3)(2, 4),
+      (2, 4),
+      (1, 2, 3, 4),
+      (1, 4)(2, 3),
+      (1, 2)(3, 4),
+      (1, 3)]
+
+
+
+
+```python
+A4=AlternatingGroup(4)
+A4*Dp4
+```
+
+
+
+
+    Group with 24 elements
+
+
+
+
+```python
+list(A4.intersection(Dp4))
+```
+
+
+
+
+    [( ),  (1, 4)(2, 3),  (1, 2)(3, 4),  (1, 3)(2, 4)]
+
+
+
+We can for instance, illustrate the third isometry theorem: $KN/N\cong K/(K\cap N)$.
+
+
+```python
+Q1=(A4*Dp4)/A4
+Q2=Dp4/(A4.intersection(Dp4))
+Q1.is_isomorphic(Q2)
+```
+
+
+
+
+    True
+
+
+
+## Lateral classes, conjugacy clases and center
+
+Lateral classes are easy to construct; they are considered as sets.
+
+
+```python
+S4=SymmetricGroup(4)
+p=S4(permutation([2,3,4,1]))
+p*A4
+```
+
+
+
+
+    { (1, 4, 3, 2),
+      (1, 4, 2, 3),
+      (1, 2, 3, 4),
+      (2, 3),
+      (2, 4),
+      (1, 2, 4, 3),
+      (3, 4),
+      (1, 3, 4, 2),
+      (1, 3, 2, 4),
+      (1, 3),
+      (1, 2),
+      (1, 4)}
+
+
+
+
+```python
+A4*p
+```
+
+
+
+
+    { (3, 4),
+      (1, 3),
+      (2, 4),
+      (1, 4),
+      (1, 3, 4, 2),
+      (1, 4, 3, 2),
+      (1, 3, 2, 4),
+      (1, 2, 4, 3),
+      (1, 2, 3, 4),
+      (2, 3),
+      (1, 4, 2, 3),
+      (1, 2)}
+
+
+
+The conjugacy class of an element and of a subgroup can be calculated as follows.
+
+
+```python
+p.conjugacy_class()
+```
+
+
+
+
+    frozenset({ (1, 2, 3, 4),
+                (1, 3, 4, 2),
+                (1, 4, 3, 2),
+                (1, 3, 2, 4),
+                (1, 2, 4, 3),
+                (1, 4, 2, 3)})
+
+
+
+
+```python
+A4.conjugacy_class()
+```
+
+
+
+
+    {frozenset({ (1, 3)(2, 4),
+                 (2, 3, 4),
+                 (1, 2, 4),
+                 (1, 2, 3),
+                 (1, 4, 3),
+                 (1, 4, 2),
+                 (1, 3, 4),
+                 (1, 4)(2, 3),
+                 (2, 4, 3),
+                ( ),
+                 (1, 2)(3, 4),
+                 (1, 3, 2)})}
+
+
+
+And also the set of all conjugacy classes.
+
+
+```python
+S4.conjugacy_classes()
+```
+
+
+
+
+    {frozenset({ (1, 4, 3, 2),
+                 (1, 3, 2, 4),
+                 (1, 2, 3, 4),
+                 (1, 3, 4, 2),
+                 (1, 2, 4, 3),
+                 (1, 4, 2, 3)}),
+     frozenset({ (2, 4, 3),
+                 (2, 3, 4),
+                 (1, 3, 2),
+                 (1, 4, 3),
+                 (1, 2, 4),
+                 (1, 4, 2),
+                 (1, 3, 4),
+                 (1, 2, 3)}),
+     frozenset({ (1, 3)(2, 4),  (1, 2)(3, 4),  (1, 4)(2, 3)}),
+     frozenset({ (2, 4),  (2, 3),  (1, 3),  (1, 4),  (3, 4),  (1, 2)})}
+
+
+
+The normalizar of a subgroup can be computed with `normalizer`.
+
+
+```python
+A4.normalizer()
+```
+
+
+
+
+    Group with 24 elements
+
+
+
+And the center with `center`.
+
+
+```python
+S4.center()
+```
+
+
+
+
+    Group with 1 elements
+
+
+
+## Quaternions and the Klein group
+
+
+```python
+Q2=QuaternionGroup()
+list(Q2)
+```
+
+
+
+
+    ['1', 'i', 'k', 'j', '-i', '-k', '-j', '-1']
+
+
+
+
+```python
+Q2.center()
+```
+
+
+
+
+    Group with 2 elements
+
+
+
+
+```python
+K=KleinGroup()
+```
+
+
+```python
+list(K)
+```
+
+
+
+
+    [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+
+
+
+```python
+list(KleinGroup("permutations"))
+```
+
+
+
+
+    [( ),  (1, 4)(2, 3),  (1, 3)(2, 4),  (1, 2)(3, 4)]
+
+
+
+
+```python
+Q=Q2/Q2.center()
+```
+
+
+```python
+Q.is_cyclic()
+```
+
+
+
+
+    False
+
+
+
+
+```python
+Q.is_isomorphic(K)
+```
+
+
+
+
+    True
+
+
