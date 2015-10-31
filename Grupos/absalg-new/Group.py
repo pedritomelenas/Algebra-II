@@ -61,8 +61,8 @@ class GroupElem:
         if not(self.group.parent==other.group.parent):
             raise TypeError("both elements must be in the same group")
         try:
-            return GroupElem(self.group.bin_op((self.elem, other.elem)), \
-                             self.group)
+            return GroupElem(self.group.parent.bin_op((self.elem, other.elem)), \
+                             self.group.parent)
         # This can return a TypeError in Funcion.__call__ if self and other
         # belong to different Groups. So we see if we can make sense of this
         # operation the other way around.
