@@ -231,9 +231,10 @@ class Group:
     def __repr__(self):
         return "Group with "+str(len(self))+" elements"
 
-    def table(self):
+    def table(self, rep=None):
         """
         Prints the Cayley table
+        If rep is "letters" or in text console, will display the table assigning letters to the elemnts in the group
         """
 
         letters = "eabcdfghijklmnopqrstuvwxyz"
@@ -241,7 +242,10 @@ class Group:
             return "This group is too big to print a Cayley table"
 
         # connect letters to elements
-        letters = "eabcdfghijklmnopqrstuvwxyz"
+        if rep=="letters":
+            letters = "eabcdfghijklmnopqrstuvwxyz"
+        else:
+            letters=[repr(g) for g in self]
         colors = ['Red','Yellow','Lime','Blue','Tan','YellowGreen','Violet','SkyBlue','Tomato',
         'Plum','PaleGreen','Magenta','Mocassin','LightPink', 'LightCyan','Khaki','Ivory','Gray','Fuchsia',
        'Green','Coral','Bisque','Aqua','Azure','DeepPink','Gainsboro','HotPink']
@@ -263,8 +267,10 @@ class Group:
             __IPYTHON__
             from IPython.display import display, HTML
             style="<head><style>\ntable, th, td {border: 1px solid black;\n border-collapse: collapse;}\n th, td {padding: 15px;}</style></head>"
-            result =style+ " ".join("%s = %s &nbsp; \n" % (l, toelem[l]) for l in letters)
-
+            if rep=="letters":
+                result =style+ " ".join("%s = %s &nbsp; \n" % (l, toelem[l]) for l in letters)
+            else:
+                result = style
             # Make the table
             head = "<p/>\n <table>"
             head = head+ "\n <tr> <td bgcolor='White'> * </td> " + " ".join("<td bgcolor="+tocolor[l]+">"+l+"</td>" for l in letters) + " </tr>\n"
@@ -280,6 +286,13 @@ class Group:
 
         except NameError:
             # Display the mapping:
+            letters = "eabcdfghijklmnopqrstuvwxyz"
+            letters = letters[:len(self)]
+            toletter = {}
+            toelem = {}
+            for letter, elem in zip(letters, self):
+                toletter[elem] = letter
+                toelem[letter] = elem
             result = "\n".join("%s: %s" % (l, toelem[l]) for l in letters) + "\n\n"
 
             # Make the graph
