@@ -304,6 +304,8 @@ class Group:
             raise TypeError("other must be a Group")
         if self.parent==other:
             return True
+        if self.parent==other.parent:
+            return self.Set <= other.Set
         return self.Set <= other.Set and \
                all(self.bin_op((a, b)) == other.bin_op((a, b)) \
                    for a in self.Set for b in self.Set)
