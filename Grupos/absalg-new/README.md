@@ -85,6 +85,8 @@ This is a sort of changelog with restpect to the original absalg module. For a s
 True
 ```
 
+- `GroupOfUnitsModInt(n)` returns the group of units of $\mathbb{Z}_n$ (wrt multiplication).
+
 - Groups have __str__ y __repr__.
 
 ## Function

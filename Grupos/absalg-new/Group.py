@@ -749,6 +749,12 @@ def KleinGroup(rep="integers"):
         return G.generate([permutation((1,2),(3,4)), permutation((1,3),(2,4))])
     raise ValueError("The second argument can be 'RS' or 'permutations'")
 
+
+def GroupOfUnitsModInt(n):
+    G=Set([m for m in range(n) if gcd(n,m)==1])
+    bop=Function(G.cartesian(G),G,lambda x: (x[0]*x[1])%n,check_well_defined=False)
+    return Group(G,bop, check_inv=False, check_ass=False, abelian=True, identity=1)
+
 class permutation:
     """
     This is the class of permutations of the set {1..n}
