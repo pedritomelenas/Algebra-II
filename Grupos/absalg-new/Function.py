@@ -6,7 +6,7 @@ from Set import Set
 
 class Function:
     """Definition of a finite function"""
-    def __init__(self, domain, codomain, function):
+    def __init__(self, domain, codomain, function, check_well_defined=True):
         """
         Initialize the function and check that it is well-formed.
 
@@ -17,8 +17,9 @@ class Function:
             raise TypeError("Domain must be a Set")
         if not isinstance(codomain, Set):
             raise TypeError("Codomain must be a Set")
-        if not all(function(elem) in codomain for elem in domain):
-            raise TypeError("Function returns some value outside of codomain")
+        if check_well_defined:
+            if not all(function(elem) in codomain for elem in domain):
+                raise TypeError("Function returns some value outside of codomain")
 
         self.domain = domain
         self.codomain = codomain
@@ -35,12 +36,12 @@ class Function:
         # Need to be a little careful, since self.domain and self.codomain are
         # often the same, and we don't want to cancel out their hashes by xoring
         # them against each other.
-        # 
-        # Also, functions we consider equal, like lambda x: x + 1, and 
-        # def jim(x): return x + 1, have different hashes, so we can't include 
+        #
+        # Also, functions we consider equal, like lambda x: x + 1, and
+        # def jim(x): return x + 1, have different hashes, so we can't include
         # the hash of self.function.
         #
-        # Finally, we should make sure that if you switch the domain and 
+        # Finally, we should make sure that if you switch the domain and
         # codomain, the hash will (usually) change, so you can't just add or
         # multiply the hashes together.
 
@@ -99,8 +100,8 @@ class Function:
             raise ValueError("codomain of other must match domain of self")
         return Function(other.domain, self.codomain, lambda x: self(other(x)))
 
-    def new_domains(self, domain, codomain):
-        return Function(domain, codomain, self.function)
+    def new_domains(self, domain, codomain, check_well_defined=True):
+        return Function(domain, codomain, self.function, check_well_defined)
 
 def identity(s):
     """Returns the identity function on the set s"""

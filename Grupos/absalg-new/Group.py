@@ -302,6 +302,8 @@ class Group:
         """Checks if self is a subgroup of other"""
         if not isinstance(other, Group):
             raise TypeError("other must be a Group")
+        if self.parent==other:
+            return True
         return self.Set <= other.Set and \
                all(self.bin_op((a, b)) == other.bin_op((a, b)) \
                    for a in self.Set for b in self.Set)
@@ -325,7 +327,7 @@ class Group:
             h = x[0].pick()
             return Set(self.bin_op((h, g)) for g in x[1])
 
-        return Group(G, Function(G.cartesian(G), G, multiply_cosets))
+        return Group(G, Function(G.cartesian(G), G, multiply_cosets, check_well_defined=False))
 
     def __div__(self, other):
         """ Returns the quotient group self / other """
@@ -337,7 +339,7 @@ class Group:
             h = x[0].pick()
             return Set(self.bin_op((h, g)) for g in x[1])
 
-        return Group(G, Function(G.cartesian(G), G, multiply_cosets))
+        return Group(G, Function(G.cartesian(G), G, multiply_cosets, check_well_defined=False))
 
     def inverse(self, g):
         """Returns the inverse of elem"""
@@ -371,7 +373,7 @@ class Group:
         bin_op = Function(((self.Set).cartesian(other.Set)).cartesian((self.Set).cartesian(other.Set)), \
                              self.Set.cartesian(other.Set), \
                              lambda x: (self.bin_op((x[0][0], x[1][0])), \
-                                        other.bin_op((x[0][1], x[1][1]))))
+                                        other.bin_op((x[0][1], x[1][1]))), check_well_defined=False)
         ab=False
         if self.is_abelian() and other.is_abelian():
             ab=True
@@ -401,7 +403,7 @@ class Group:
             if oldG == newG: break
             else: oldG = newG
         oldG = Set(g.elem for g in oldG)
-        return Group(oldG, self.bin_op.new_domains(oldG.cartesian(oldG), oldG),parent=self.parent,check_ass=False,check_inv=False, identity=self.e.elem)
+        return Group(oldG, self.bin_op.new_domains(oldG.cartesian(oldG), oldG, check_well_defined=False),parent=self.parent,check_ass=False,check_inv=False, identity=self.e.elem)
     def is_cyclic(self):
         """Checks if self is a cyclic Group"""
         return any(g.order() == len(self) for g in self)
@@ -500,7 +502,7 @@ class Group:
         if self.parent != other.parent:
             raise TypeError("self and other must be subgroups of the same Group")
         common = Set(self.Set & other.Set)
-        return Group(common,Function(common.cartesian(common), common, self.bin_op),self.parent,check_ass=False,check_inv=False,identity=self.e.elem)
+        return Group(common,Function(common.cartesian(common), common, self.bin_op,check_well_defined=False),self.parent,check_ass=False,check_inv=False,identity=self.e.elem)
 
     def conjugacy_classes(self):
         """Compute the set of conjugacy clases of the elements of a group; see conjugacy_class of a group element"""
@@ -516,7 +518,7 @@ class Group:
     def center(self):
         """Computes the center of self: the subgroup of element g such that g*h=h*g for all h in G"""
         G=Set([g.elem for g in self if all(g*h==h*g for h in self)])
-        op=self.bin_op.new_domains(G.cartesian(G),G)
+        op=self.bin_op.new_domains(G.cartesian(G),G,check_well_defined=False)
         return Group(G,op,parent=self.parent, check_ass=False, check_inv=False, abelian=True,identity=self.e.elem)
 
     def conjugacy_class(self):
@@ -536,7 +538,7 @@ class Group:
         G=list(self.parent.group_elems)
         H=list(self.group_elems)
         N=Set([g.elem for g in G if set([g*h for h in H])==set([h*g for h in H])])
-        op=self.bin_op.new_domains(N.cartesian(N),N)
+        op=self.bin_op.new_domains(N.cartesian(N),N,check_well_defined=False)
         return Group(N,op,parent=self.parent, check_ass=False, check_inv=False, identity=self.e.elem)
 
 class GroupHomomorphism(Function): #we should add here check_well_defined, and check_group_axioms as options
@@ -568,12 +570,12 @@ class GroupHomomorphism(Function): #we should add here check_well_defined, and c
     def kernel(self):
         """Returns the kernel of the homomorphism as a Group object"""
         G = Set(g.elem for g in self.domain if self(g) == self.codomain.e)
-        return Group(G, self.domain.bin_op.new_domains(G.cartesian(G), G),check_ass=False,check_inv=False,identity=self.domain.e.elem)
+        return Group(G, self.domain.bin_op.new_domains(G.cartesian(G), G, check_well_defined=False),parent=self.domain, check_ass=False,check_inv=False,identity=self.domain.e.elem)
 
     def image(self):
         """Returns the image of the homomorphism as a Group object"""
         G = Set(g.elem for g in self._image())
-        return Group(G, self.codomain.bin_op.new_domains(G.cartesian(G), G),check_ass=False,check_inv=False,identity=self.codomain.e.elem)
+        return Group(G, self.codomain.bin_op.new_domains(G.cartesian(G), G, check_well_defined=False),parent=self.codomain, check_ass=False,check_inv=False,identity=self.codomain.e.elem)
 
     def is_isomorphism(self):
         return self.is_bijective()
