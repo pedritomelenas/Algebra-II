@@ -55,6 +55,8 @@ This is a sort of changelog with restpect to the original absalg module. For a s
 
 - There is a new attribute for groups: `parent`. When a group is created from scratch, then `parent=self` will be set. If we create a subgroup of `G`, then `parent=G` will be set instead. This allows to easy subgroup (__le__) testings, product of elements are allowed if they are living in the same `parent` group. Also intersection of subgroups via `H.intersection(J)` is possible, and the product of subgroups `H*G`.
 
+- The output of `G.sugroups()` is a dictionary of the form `{ n:sugroups of order n ...}`.
+
 - Lateral classes of subgroups: `a*H` and  `H*a`.
 
 - `SymmetricGroup(n)` is now a group of `permutation`s.

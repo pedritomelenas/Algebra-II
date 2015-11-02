@@ -434,7 +434,14 @@ class Group:
             if new_sgs == old_sgs: break
             else: old_sgs = new_sgs
 
-        return old_sgs
+        n=len(self)
+        layers={n:set([self])}
+        for i in range(1,n):
+            if n%i==0:
+                ls=set([H for H in old_sgs if len(H)==i])
+                if len(ls)>0:
+                    layers.update({i:ls})
+        return layers
 
     def generators(self):
         """
