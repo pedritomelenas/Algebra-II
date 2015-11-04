@@ -57,6 +57,8 @@ This is a sort of changelog with restpect to the original absalg module. For a s
 
 - The output of `G.sugroups()` is a dictionary of the form `{ n:sugroups of order n ...}`.
 
+- `G.subgroup_by_elems(ls)` outputs a subgroup of `G` with elements `ls` if these are closed under multiplication.
+
 - Lateral classes of subgroups: `a*H` and  `H*a`.
 
 - `SymmetricGroup(n)` is now a group of `permutation`s.

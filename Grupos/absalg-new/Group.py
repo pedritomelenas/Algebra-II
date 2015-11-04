@@ -549,7 +549,7 @@ class Group:
         if self.parent != other.parent:
             raise TypeError("self and other must be subgroups of the same Group")
         common = Set(self.Set & other.Set)
-        return Group(common,Function(common.cartesian(common), common, self.bin_op,check_well_defined=False),self.parent,check_ass=False,check_inv=False,identity=self.e.elem)
+        return Group(common,Function(common.cartesian(common), common, self.bin_op.function, check_well_defined=False), self.parent,check_ass=False,check_inv=False,identity=self.e.elem)
 
     def conjugacy_classes(self):
         """Compute the set of conjugacy clases of the elements of a group; see conjugacy_class of a group element"""
