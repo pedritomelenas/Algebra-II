@@ -17,7 +17,7 @@ This is a sort of changelog with restpect to the original absalg module. For a s
 
   - `permutation(list of tuples)` does the same as in the preceding case.
 
-- Permutations have __str__  , __repr__ y __hash__. Also
+- Permutations have `__str__`  , `__repr__` y `__hash__`. Also
 
   - Equality (change this in the future)
 
@@ -25,7 +25,7 @@ This is a sort of changelog with restpect to the original absalg module. For a s
 
   - Inverse
 
-  - __pow__
+  - `__pow__`
 
   - Decomposition into disjoint_cycles
 
@@ -56,8 +56,6 @@ This is a sort of changelog with restpect to the original absalg module. For a s
 - There is a new attribute for groups: `parent`. When a group is created from scratch, then `parent=self` will be set. If we create a subgroup of `G`, then `parent=G` will be set instead. This allows to easy subgroup (__le__) testings, product of elements are allowed if they are living in the same `parent` group. Also intersection of subgroups via `H.intersection(J)` is possible, and the product of subgroups `H*G`.
 
 - The output of `G.sugroups()` is a dictionary of the form `{ n:sugroups of order n ...}`.
-
-- `G.subgroup_by_elems(ls)` outputs a subgroup of `G` with elements `ls` if these are closed under multiplication.
 
 - Lateral classes of subgroups: `a*H` and  `H*a`.
 
@@ -91,7 +89,7 @@ True
 
 - `GroupOfUnitsModInt(n)` returns the group of units of $\mathbb{Z}_n$ (wrt multiplication).
 
-- Groups have __str__ y __repr__.
+- Groups have `__str__` y `__repr__`.
 
 ## Function
 
