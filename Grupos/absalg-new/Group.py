@@ -588,6 +588,10 @@ class Group:
         op=self.bin_op.new_domains(N.cartesian(N),N,check_well_defined=False)
         return Group(N,op,parent=self.parent, check_ass=False, check_inv=False, identity=self.e.elem)
 
+    def is_simple(self):
+        """Determines if the group is simple"""
+        return len(self.subgroups())==2
+        
 class GroupHomomorphism(Function): #we should add here check_well_defined, and check_group_axioms as options
     """
     The definition of a Group Homomorphism
