@@ -449,7 +449,7 @@ class Group:
         return any(g.order() == len(self) for g in self)
 
     def subgroups(self):
-        """Returns the Set of self's subgroups"""
+        """Returns the a dictionay of self's subgroups of the form order:groups of this order"""
 
         old_sgs = Set([self.generate([self.e])])
         while True:
@@ -467,6 +467,16 @@ class Group:
                 if len(ls)>0:
                     layers.update({i:ls})
         return layers
+
+    def normal_subgroups(self):
+        """Filters the dictionary of subgroups with those that are normal"""
+        sbs=self.subgroups()
+        nsbs={}
+        for i in sbs.keys():
+            ls=set([H for H in sbs[i] if H.is_normal_subgroup(self)])
+            if len(ls)>0:
+                nsbs.update({i:ls})
+        return nsbs
 
     def generators(self):
         """
@@ -590,8 +600,8 @@ class Group:
 
     def is_simple(self):
         """Determines if the group is simple"""
-        return len(self.subgroups())==2
-        
+        return len(self.normal_subgroups())==2
+
 class GroupHomomorphism(Function): #we should add here check_well_defined, and check_group_axioms as options
     """
     The definition of a Group Homomorphism
