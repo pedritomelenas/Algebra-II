@@ -868,6 +868,9 @@ class permutation:
         else:
             raise TypeError("expecting a list or sequence of integers or tuples of integers as argument")
 
+    def __call__(self,n):
+        return self.tuple[n-1]
+
     def __hash__(self):
         return hash(self.tuple)
 
