@@ -97,6 +97,12 @@ True
 
 ## ToDo
 
+- Optimize test for normality
+
+- Define action of a group over a Set
+
+- Define orbits and stabilizers
+
 - Labels on elements and groups?
 
 - Conjugate
