@@ -641,6 +641,60 @@ class GroupHomomorphism(Function): #we should add here check_well_defined, and c
     def is_isomorphism(self):
         return self.is_bijective()
 
+class GroupAction(Function): #we should add here check_well_defined, and check_group_axioms as options
+    """
+    The definition of a Group Action
+
+    A Group Action is a Function from the cartasian product of a set X and a group G to X, fulfilling some properties
+
+    Example:
+        >>> from Group import *
+        >>> G=SymmetricGroup(3)
+        >>> f=GroupAction(G,Set({1,2,3}),lambda x,y:x.elem(y))
+        >>> p=G(permutation(2,3,1))
+        >>> f.function(p,3)
+        1
+        >>> f.orbit(2)
+        frozenset({1, 2, 3})
+        >>> f.stabilizer(3)
+        Group with 2 elements
+        >>> list(_)
+        [( ),  (1, 2)]
+    """
+
+    def __init__(self, group, theset, function, check_action_axioms=True):
+        """Check types and the homomorphism axioms; records the two groups"""
+
+        if not isinstance(group, Group):
+            raise TypeError("The first argument must be a Group")
+        if not isinstance(theset, Set):
+            raise TypeError("The secon argument must be a Set")
+        # f(g,x) maps to X with g in the group and x in the set
+        if not all(function(g,x) in theset for g in group for x in theset):
+            raise TypeError("Function returns some value outside of codomain")
+
+        if check_action_axioms:
+            #first axiom a*(b*x)=(a b)*x
+            if not all(function(a,function(b,x)) == function(a*b,x) \
+                       for a in group for b in group for x in theset):
+                raise ValueError("function doesn't satisfy the first action axiom")
+            #second axiom
+            if not all(function(group.e, x)==x for x in theset):
+                raise ValueError("function doesn't satisfy the second action axiom")
+
+        self.group = group
+        self.set = theset
+        self.function = function
+    def orbit(self, other):
+        if not(other in self.set):
+            raise ValueError("other must be in self.set")
+        return Set([self.function(a,other) for a in self.group])
+
+    def stabilizer(self,other):
+        if not(other in self.set):
+            raise ValueError("other must be in self.set")
+        G=Set([a.elem for a in self.group if self.function(a,other)==other])
+        return Group(G,self.group.bin_op.new_domains(G.cartesian(G), G, check_well_defined=False),parent=self.group, check_ass=False,check_inv=False,identity=self.group.e.elem)
 
 def CyclicGroup(n, rep="integers"):
     """
