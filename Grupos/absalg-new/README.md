@@ -95,6 +95,11 @@ True
 
 - We have introduced a new parameter `check_well_defined` to avoid testing if a function is well defined when we know (for sure) that it is so...
 
+
+## GroupAction
+
+- We introduced group actions with orbits and stabilizers
+
 ## ToDo
 
 - Optimize test for normality
