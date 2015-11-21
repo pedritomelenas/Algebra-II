@@ -641,7 +641,7 @@ class GroupHomomorphism(Function): #we should add here check_well_defined, and c
     def is_isomorphism(self):
         return self.is_bijective()
 
-class GroupAction(Function): #we should add here check_well_defined, and check_group_axioms as options
+class GroupAction: #we should add here check_well_defined, and check_group_axioms as options
     """
     The definition of a Group Action
 
@@ -685,6 +685,16 @@ class GroupAction(Function): #we should add here check_well_defined, and check_g
         self.group = group
         self.set = theset
         self.function = function
+
+    def __str__(self):
+        return "Group action"
+
+    def __repr__(self):
+        return "Group action from ("+str(self.group)+")x("+str(self.set)+") to "+str(self.set) 
+
+    def __call__(self,g,el):
+        return self.function(g,el)
+
     def orbit(self, other):
         if not(other in self.set):
             raise ValueError("other must be in self.set")
