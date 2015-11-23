@@ -690,7 +690,7 @@ class GroupAction: #we should add here check_well_defined, and check_group_axiom
         return "Group action"
 
     def __repr__(self):
-        return "Group action from ("+str(self.group)+")x("+str(self.set)+") to "+str(self.set) 
+        return "Group action from ("+str(self.group)+")x("+str(self.set)+") to "+str(self.set)
 
     def __call__(self,g,el):
         return self.function(g,el)
@@ -700,11 +700,24 @@ class GroupAction: #we should add here check_well_defined, and check_group_axiom
             raise ValueError("other must be in self.set")
         return Set([self.function(a,other) for a in self.group])
 
+    def orbits(self):
+        lels=list(self.set)
+        lorb=[]
+        while len(lels)>0:
+            el=lels[0]
+            orb=self.orbit(el)
+            lorb.append(orb)
+            lels=[g for g in lels if not(g in orb)]
+        return lorb
+
     def stabilizer(self,other):
         if not(other in self.set):
             raise ValueError("other must be in self.set")
         G=Set([a.elem for a in self.group if self.function(a,other)==other])
         return Group(G,self.group.bin_op.new_domains(G.cartesian(G), G, check_well_defined=False),parent=self.group, check_ass=False,check_inv=False,identity=self.group.e.elem)
+
+    def is_transitive(self):
+        return len(self.orbits())==1
 
 def CyclicGroup(n, rep="integers"):
     """
