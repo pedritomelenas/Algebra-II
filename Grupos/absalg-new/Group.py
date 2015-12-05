@@ -826,7 +826,7 @@ def DihedralGroup(n, rep="RS"):
         return G.generate([r,s])
     raise ValueError("The second argument can be 'RS' or 'permutations'")
 
-def QuaternionGroup():
+def QuaternionGroup(rep="ijk"):
     """
     The quaternion group Q2; its elments are 1,i,j,k and their oposite
 
@@ -841,14 +841,24 @@ def QuaternionGroup():
         >>> j*i
         '-k'
     """
-    q2=[ "1", "-1", "i", "-i", "j", "-j", "k", "-k"]
-    table=[[ "1", "-1", "i", "-i", "j", "-j", "k", "-k"],[ "-1", "1", "-i", "i", "-j", "j", "-k", "k"],[ "i", "-i", "-1", "1", "k", "-k", "-j", "j"],[ "-i", "i", "1", "-1", "-k", "k", "j", "-j"],[ "j", "-j", "-k", "k", "-1", "1", "i", "-i"],[ "-j", "j", "k", "-k", "1", "-1", "-i", "i"],[ "k", "-k", "j", "-j", "-i", "i", "-1", "1"],[ "-k", "k", "-j", "j", "i", "-i", "1", "-1"]]
-    def product(a,b):
-        i=q2.index(a)
-        j=q2.index(b)
-        return table[i][j]
-    G=Set(q2)
-    return Group(G,Function(G.cartesian(G),G, lambda x: product(x[0],x[1])))
+    if rep=="ijk":
+        q2=[ "1", "-1", "i", "-i", "j", "-j", "k", "-k"]
+        table=[[ "1", "-1", "i", "-i", "j", "-j", "k", "-k"],[ "-1", "1", "-i", "i", "-j", "j", "-k", "k"],[ "i", "-i", "-1", "1", "k", "-k", "-j", "j"],[ "-i", "i", "1", "-1", "-k", "k", "j", "-j"],[ "j", "-j", "-k", "k", "-1", "1", "i", "-i"],[ "-j", "j", "k", "-k", "1", "-1", "-i", "i"],[ "k", "-k", "j", "-j", "-i", "i", "-1", "1"],[ "-k", "k", "-j", "j", "i", "-i", "1", "-1"]]
+        def product(a,b):
+            i=q2.index(a)
+            j=q2.index(b)
+            return table[i][j]
+        G=Set(q2)
+        return Group(G,Function(G.cartesian(G),G, lambda x: product(x[0],x[1])))
+    if rep=="permutations":
+        q1=[permutation([1, 2, 3, 4, 5, 6, 7, 8]), permutation([2, 3, 4, 1, 6, 8, 5, 7]),
+            permutation([3, 4, 1, 2, 8, 7, 6, 5]), permutation([4, 1, 2, 3, 7, 5, 8, 6]),
+            permutation([5, 7, 8, 6, 3, 2, 4, 1]), permutation([6, 5, 7, 8, 4, 3, 1, 2]),
+            permutation([7, 8, 6, 5, 2, 1, 3, 4]), permutation([8, 6, 5, 7, 1, 4, 2, 3])]
+        G=Set(q1)
+        bin_op = Function(G.cartesian(G), G, lambda x: x[0]*x[1])
+        return Group(G, bin_op)
+    raise ValueError("The second argument must be 'ijk' or 'permutations'")
 
 def KleinGroup(rep="integers"):
     """
