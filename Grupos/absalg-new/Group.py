@@ -742,9 +742,11 @@ def CyclicGroup(n, rep="integers"):
         bin_op = Function(G.cartesian(G), G, lambda x: (x[0] + x[1]) % n)
         return Group(G, bin_op,check_ass=False,check_inv=False,identity=0,abelian=True)
     if rep=="permutations":
-        G=SymmetricGroup(n)
-        c=G(permutation(tuple([i+1 for i in range(n)])))
-        return G.generate([c])
+        #G=SymmetricGroup(n)
+        c=permutation(tuple([i+1 for i in range(n)]))
+        G=Set([c**i for i in range(n)])
+        bin_op=Function(G.cartesian(G),G, lambda x:x[0]*x[1])
+        return Group(G,bin_op,check_ass=False,check_inv=False,identity=permutation(list(range(1,n+1))),abelian=True)
     raise ValueError("The second argument can be 'integers' or 'permutations'")
 
 def SymmetricGroup(n):
@@ -1115,3 +1117,13 @@ class permutation:
         if len(l)==1:
             return l[0]
         return (functools.reduce(operator.mul,l))//(functools.reduce(gcd,l))
+    def extend(self,n):
+        """
+        Blabla
+        """
+        if not(isinstance(n,int)) or (n<self.length):
+            raise ValueError("Either the argument is not an integer or it is less than the length of the permuataion")
+        tmp=list(range(1,n+1))
+        for i in range(self.length):
+            tmp[i]=(self.tuple)[i]
+        return permutation(tmp)
