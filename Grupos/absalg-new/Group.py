@@ -600,7 +600,28 @@ class Group:
             N=frozenset([g*h*g**-1 for h in H])
             cls.add(N)
         return cls
-
+    def cosets(self,other,side="left"):
+        if not(other<=self):
+            raise ValueError("The first argument must be a subgroup of the given group")
+        if side=="right":
+            cls=[set(other.group_elems)]
+            D=list((self.group_elems)-(other.group_elems))
+            while len(D)>0:
+                a=D[0]
+                new=a*other
+                cls.append(new)
+                D=list(set(D)-new)
+            return cls
+        if side=="left":
+            cls=[set(other.group_elems)]
+            D=list((self.group_elems)-(other.group_elems))
+            while len(D)>0:
+                a=D[0]
+                new=other*a
+                cls.append(new)
+                D=list(set(D)-new)
+            return cls
+        raise ValueError("The second argument must be either 'left' or 'right'")
     def normalizer(self):
         """Computes the normalizer of self in self.parent"""
         if self.Set==self.parent.Set:
