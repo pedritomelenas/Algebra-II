@@ -448,25 +448,38 @@ class Group:
         """Checks if self is a cyclic Group"""
         return any(g.order() == len(self) for g in self)
 
-    def subgroups(self):
+    def subgroups(self,k=None):
         """Returns the a dictionay of self's subgroups of the form order:groups of this order"""
 
-        old_sgs = Set([self.generate([self.e])])
-        while True:
-            new_sgs = old_sgs | Set(self.generate(list(sg.group_elems) + [g]) \
-                                     for sg in old_sgs for g in self \
-                                     if g not in sg.group_elems)
-            if new_sgs == old_sgs: break
-            else: old_sgs = new_sgs
+        if k==None:
+            old_sgs = Set([self.generate([self.e])])
+            while True:
+                new_sgs = old_sgs | Set(self.generate(list(sg.group_elems) + [g]) \
+                                         for sg in old_sgs for g in self \
+                                         if g not in sg.group_elems)
+                if new_sgs == old_sgs: break
+                else: old_sgs = new_sgs
 
-        n=len(self)
-        layers={n:set([self])}
-        for i in range(1,n):
-            if n%i==0:
-                ls=set([H for H in old_sgs if len(H)==i])
-                if len(ls)>0:
-                    layers.update({i:ls})
-        return layers
+            n=len(self)
+            layers={n:set([self])}
+            for i in range(1,n):
+                if n%i==0:
+                    ls=set([H for H in old_sgs if len(H)==i])
+                    if len(ls)>0:
+                        layers.update({i:ls})
+            return layers
+        if not(isinstance(k,int)):
+            raise ValueError("The second argument, if given, must be an integer")
+        if (k<=0) or (len(self)%k!=0):
+            return []
+
+        elem_e=set([self.e])
+        elems=set(self.group_elems)
+        L=elems.difference(elem_e)
+        K=itertools.combinations(L,k-1)
+        K=[set(x) for x in K]
+        K=[x.union(elem_e) for x in K]
+        return [self.subgroup_by_elms(A) for A in K if all(f*g in A for f in A for g in A)]
 
     def normal_subgroups(self):
         """Filters the dictionary of subgroups with those that are normal"""
