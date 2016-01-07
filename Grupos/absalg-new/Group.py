@@ -578,7 +578,7 @@ class Group:
         """Compute the set of conjugacy clases of the elements of a group; see conjugacy_class of a group element"""
         cls=set([])
         G=list(self.group_elems)
-        while len(G)>1:
+        while len(G)>0:
             x=G[0]
             H=x.conjugacy_class()
             cls.add(H)
