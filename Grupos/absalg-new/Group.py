@@ -642,9 +642,21 @@ class GroupHomomorphism(Function): #we should add here check_well_defined, and c
 
     A GroupHomomorphism is a Function between Groups that obeys the group
     homomorphism axioms.
+
+    Args:
+        domain, codomain and function. domain and codomain are groups, and function is the map
+
+    Example:
+        >>> G=CyclicGroup(2)
+        >>> H=G.cartesian(G)
+        >>> f=GroupHomomorphism(H,G, lambda x:G(x.elem[1]))
+        >>> f.kernel()
+        Group with 2 elements
+        >>> f.is_surjective()
+        True
     """
 
-    def __init__(self, domain, codomain, function):
+    def __init__(self, domain, codomain, function, check_morphism_axioms=True):
         """Check types and the homomorphism axioms; records the two groups"""
 
         if not isinstance(domain, Group):
@@ -654,13 +666,17 @@ class GroupHomomorphism(Function): #we should add here check_well_defined, and c
         if not all(function(elem) in codomain for elem in domain):
             raise TypeError("Function returns some value outside of codomain")
 
-        if not all(function(a * b) == function(a) * function(b) \
-                   for a in domain for b in domain):
-            raise ValueError("function doesn't satisfy the homomorphism axioms")
+        if check_morphism_axioms:
+            if not all(function(a * b) == function(a) * function(b) \
+                       for a in domain for b in domain):
+                raise ValueError("function doesn't satisfy the homomorphism axioms")
 
         self.domain = domain
         self.codomain = codomain
         self.function = function
+
+    def __call__(self,other):
+        return self.function(other)
 
     def kernel(self):
         """Returns the kernel of the homomorphism as a Group object"""
