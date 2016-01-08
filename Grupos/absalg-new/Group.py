@@ -50,7 +50,9 @@ class GroupElem:
         If other = n is an int, and self is in an abelian group, returns self**n
         """
 
-        if isinstance(other,Group) or isinstance(other,set):
+        if isinstance(other,Group):
+            return Set(self.group.bin_op((self.elem, h)) for h in other.Set)
+        if isinstance(other,set):
             return set([self*g for g in other])
         if self.group.is_abelian() and isinstance(other, (int)):
             return self ** other
