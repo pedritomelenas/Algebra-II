@@ -52,8 +52,8 @@ class GroupElem:
 
         if isinstance(other,Group):
             return Set(self.group.bin_op((self.elem, h)) for h in other.Set)
-        if isinstance(other,set):
-            return set([self*g for g in other])
+        #if isinstance(other,set):
+        #    return set([self*g for g in other])
         if self.group.is_abelian() and isinstance(other, (int)):
             return self ** other
 
@@ -62,14 +62,14 @@ class GroupElem:
                             "(if self's group is abelian)")
         if not(self.group.parent==other.group.parent):
             raise TypeError("both elements must be in the same group")
-        try:
-            return GroupElem(self.group.parent.bin_op((self.elem, other.elem)), \
+        #try:
+        return GroupElem(self.group.parent.bin_op((self.elem, other.elem)), \
                              self.group.parent)
         # This can return a TypeError in Funcion.__call__ if self and other
         # belong to different Groups. So we see if we can make sense of this
         # operation the other way around.
-        except TypeError:
-            return other.__rmul__(self)
+        #except TypeError:
+        #    return other.__rmul__(self)
 
     def __rmul__(self, other):
         """
@@ -373,7 +373,8 @@ class Group:
         other can be a group element and we get the lateral class
         """
         if isinstance(other,GroupElem):
-            return set([g*other for g in self])
+            return Set(other.group.bin_op((h, other.elem)) for h in self.Set)
+            #return set([g*other for g in self])
         if self.parent != other.parent:
             raise TypeError("self and other must be subgroups of the same Group")
         gens=Set(self.generators())
@@ -482,7 +483,7 @@ class Group:
         K=[x.union(elem_e) for x in K]
         ls=set([self.subgroup_by_elms(A) for A in K if all(f*g in A for f in A for g in A)])
         layers.update({k:ls})
-        return layers 
+        return layers
 
     def normal_subgroups(self,k=None):
         """Filters the dictionary of subgroups with those that are normal"""
@@ -495,7 +496,7 @@ class Group:
             ls=set([H for H in sbs[i] if H.is_normal_subgroup(self)])
             if len(ls)>0:
                 nsbs.update({i:ls})
-        return nsbs 
+        return nsbs
 
     def Sylow_subgroups(self,p):
         n=len(self)
@@ -633,7 +634,7 @@ class Group:
             D=list((self.group_elems)-(other.group_elems))
             while len(D)>0:
                 a=D[0]
-                new=a*other
+                new=set(a*h for h in other)
                 cls.append(new)
                 D=list(set(D)-new)
             return cls
@@ -642,7 +643,7 @@ class Group:
             D=list((self.group_elems)-(other.group_elems))
             while len(D)>0:
                 a=D[0]
-                new=other*a
+                new=set(h*a for h in other)
                 cls.append(new)
                 D=list(set(D)-new)
             return cls
