@@ -490,24 +490,24 @@ class Group:
             if len(ls)>0:
                 nsbs.update({i:ls})
         return nsbs
-    
+
     def Sylow_subgroups(self,p):
         n=len(self)
         r=1
         while n%p ==0:
             r=r*p
             n=n/p
-        return self.subgroups(r) 
-        
+        return self.subgroups(r)
+
     def order(self):
         if not isinstance(self, Group):
-            raise TypeError("self is not a Group") 
+            raise TypeError("self is not a Group")
         return len(self)
-    
-    def indice(self,other):
+
+    def index(self,other):
         if not isinstance(self, Group):
-            raise TypeError("self is not a Group") 
-        if other <= self: 
+            raise TypeError("self is not a Group")
+        if other <= self:
             return self.order()//other.order()
 
     def generators(self):
@@ -811,6 +811,12 @@ def CyclicGroup(n, rep="integers"):
         bin_op = Function(G.cartesian(G), G, lambda x: (x[0] + x[1]) % n)
         return Group(G, bin_op,check_ass=False,check_inv=False,identity=0,abelian=True)
     if rep=="permutations":
+        def rotate_left(x, y):
+            if len(x) == 0:
+                return []
+            y = y % len(x)
+            return x[y:] + x[:y]
+
         def cyclic(n):
             gen = list(range(1,n+1))
             for i in range(n):
@@ -857,12 +863,7 @@ def AlternatingGroup(n):
         return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=False,parent=SymmetricGroup(n))
     return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=True,parent=SymmetricGroup(n))
 
-def rotate_left(x, y):
-    if len(x) == 0:
-        return []
-    y = y % len(x)
-    return x[y:] + x[:y]
- 
+
 
 def DihedralGroup(n, rep="RS"):
     """
@@ -899,6 +900,12 @@ def DihedralGroup(n, rep="RS"):
                     return "R%d" % ((x1 - x2) % n)
         return Group(G, Function(G.cartesian(G), G, multiply_symmetries))
     if rep=="permutations":
+        def rotate_left(x, y):
+            if len(x) == 0:
+                return []
+            y = y % len(x)
+            return x[y:] + x[:y]
+
         def dihedral(n):
             if n == 1:
                 yield permutation([1, 2])
@@ -914,7 +921,7 @@ def DihedralGroup(n, rep="RS"):
                 yield permutation(gen)
                 yield permutation(gen[::-1])
                 gen = rotate_left(gen, 1)
-                
+
         G=Set(dihedral(n))
         bin_op = Function(G.cartesian(G), G, lambda x: x[0]*x[1])
         return Group(G, bin_op,check_ass=False,check_inv=False,identity=permutation(list(range(1,2*n+1))),abelian=False)
@@ -976,18 +983,18 @@ def KleinGroup(rep="integers"):
         return G.generate([permutation((1,2),(3,4)), permutation((1,3),(2,4))])
     raise ValueError("The second argument can be 'RS' or 'permutations'")
 
-def DiCyclicGroup(): 
+def DiCyclicGroup():
     a=permutation([(1,2),(3,4),(5,6,7)])
     b=permutation([(1,3,2,4),(5,7)])
     G=Set([a**i for i in range(6)]+[a**i*b for i in range(6)])
     bin_op = Function(G.cartesian(G), G, lambda x: x[0]*x[1])
-    return Group(G, bin_op,check_ass=False,check_inv=False,identity=permutation([1,2,3,4,5,6,7]),abelian=False) 
+    return Group(G, bin_op,check_ass=False,check_inv=False,identity=permutation([1,2,3,4,5,6,7]),abelian=False)
 
 def GroupOfUnitsModInt(n):
     G=Set([m for m in range(n) if gcd(n,m)==1])
     bop=Function(G.cartesian(G),G,lambda x: (x[0]*x[1])%n,check_well_defined=False)
     return Group(G,bop, check_inv=False, check_ass=False, abelian=True, identity=1)
- 
+
 class permutation:
     """
     This is the class of permutations of the set {1..n}
