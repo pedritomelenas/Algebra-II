@@ -1227,7 +1227,7 @@ class permutation:
         return (functools.reduce(operator.mul,l))//(functools.reduce(gcd,l))
     def extend(self,n):
         """
-        Blabla
+        Extends the permutation to a permutation of the set {1..n} leaving the elements above its length untouched
         """
         if not(isinstance(n,int)) or (n<self.length):
             raise ValueError("Either the argument is not an integer or it is less than the length of the permuataion")
