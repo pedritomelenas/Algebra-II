@@ -453,7 +453,7 @@ class Group:
 
     def subgroups(self,k=None):
         """Returns the a dictionay of self's subgroups of the form order:groups of this order"""
-        layers={}
+
         if k==None:
             old_sgs = Set([self.generate([self.e])])
             while True:
@@ -464,6 +464,7 @@ class Group:
                 else: old_sgs = new_sgs
 
             n=len(self)
+            layers={n:set([self])}
             for i in range(1,n):
                 if n%i==0:
                     ls=set([H for H in old_sgs if len(H)==i])
@@ -473,7 +474,7 @@ class Group:
         if not(isinstance(k,int)):
             raise ValueError("The second argument, if given, must be an integer")
         if (k<=0) or (len(self)%k!=0):
-            return layers
+            return []
 
         elem_e=set([self.e])
         elems=set(self.group_elems)
@@ -481,16 +482,11 @@ class Group:
         K=itertools.combinations(L,k-1)
         K=[set(x) for x in K]
         K=[x.union(elem_e) for x in K]
-        ls=set([self.subgroup_by_elms(A) for A in K if all(f*g in A for f in A for g in A)])
-        layers.update({k:ls})
-        return layers
+        return [self.subgroup_by_elms(A) for A in K if all(f*g in A for f in A for g in A)]
 
-    def normal_subgroups(self,k=None):
+    def normal_subgroups(self):
         """Filters the dictionary of subgroups with those that are normal"""
-        if k==None:
-            sbs=self.subgroups()
-        else:
-            sbs=self.subgroups(k)
+        sbs=self.subgroups()
         nsbs={}
         for i in sbs.keys():
             ls=set([H for H in sbs[i] if H.is_normal_subgroup(self)])
