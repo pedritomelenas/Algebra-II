@@ -657,7 +657,36 @@ class Group:
     def is_simple(self):
         """Determines if the group is simple"""
         return len(self.normal_subgroups())==2
+    
+    def commutator(self, group1,group2):
+        """Return the commutator of the subgroups."""
+        if not(group1<=self and group2<=self):
+            raise TypeError("The arguments must be subgroups of the given group")
+        G=[g * h * g**-1 * h**-1 for g in group1 for h in group2] 
+        return self.generate(G)
 
+    def derived_subgroup(self):
+        """Return the derived subgroup of the group."""
+        return self.commutator(self, self)    
+
+    def derived_series(self):
+        res = [self]
+        current = self
+        nextgroup = self.derived_subgroup()
+        while not current<=nextgroup:
+            res.append(nextgroup)
+            current = nextgroup
+            nextgroup = nextgroup.derived_subgroup()
+        return res 
+    
+    def is_trivial(self):
+        return all(g.elem == self.e.elem for g in self)
+    
+    def is_solvable(self):
+        ds = self.derived_series()
+        terminator = ds[len(ds) - 1] 
+        return terminator.is_trivial() 
+   
 class GroupHomomorphism(Function): #we should add here check_well_defined, and check_group_axioms as options
     """
     The definition of a Group Homomorphism
