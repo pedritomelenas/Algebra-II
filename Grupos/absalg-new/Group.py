@@ -682,7 +682,7 @@ class Group:
     def is_trivial(self):
         return all(g.elem == self.e.elem for g in self)
     
-    def is_solvable(self):
+    def is_soluble(self):
         ds = self.derived_series()
         terminator = ds[len(ds) - 1] 
         return terminator.is_trivial() 
