@@ -690,68 +690,7 @@ class Group:
         terminator = ds[len(ds) - 1] 
         return terminator.is_trivial() 
    
-    def ElementaryDivisors(n):
-        def partition(n):
-            a = [0 for i in range(n + 1)]
-            k = 1
-            y = n - 1
-            while k != 0:
-                x = a[k - 1] + 1
-                k -= 1
-                while 2 * x <= y:
-                    a[k] = x
-                    y -= x
-                    k += 1
-                l = k + 1
-                while x <= y:
-                    a[k] = x
-                    a[l] = y
-                    yield a[:k + 2]
-                    x += 1
-                    y -= 1
-                a[k] = x + y
-                y = x + y - 1
-                yield a[:k + 1]
-        factored=factorint(n)
-        factored2={}
-        for i in factored.keys():
-            factored2[i]=list(partition(factored[i]))
-        E=[[[(lambda x: k**x)(i) for i in factored2[k][j]] for j in range(len(factored2[k]))] for k in factored2]
-        Econ=[[]]
-        for i in range(len(E)):
-            Econ=[a+[b] for a in Econ for b in E[i]]
-        return Econ
-   
-    def AbelianGroups(n,option="ElementaryDivisors"):
-        if option=="ElementaryDivisors":
-            E=ElementaryDivisors(n)
-        elif option=="InvariantFactors":
-            E=InvariantFactors(n)
-        else:
-            raise ValueError("The option is ElementaryDivisors (defect) or InvariantFactors")
-        Res=[[CyclicGroup(m) for m in flatten(h)] for h in E]
-        l=Res[0]
-        def car(l):
-            G=l[0]
-            if len(l)==1:
-                return G
-            return G.cartesian(car(l[1:]))
-        total=[car(l) for l in Res]
-        return total
     
-    def InvariantFactors(n):
-        E=ElementaryDivisors(n)
-        H=[]
-        for B in E:
-            L=[]
-            A=deepcopy(B)
-            while len(A)!=0:
-                a=reduce(operator.mul,[h.pop() for h in A])
-                L.append(a)  
-                while [] in A:
-                    A.remove([])
-            H.append(L) 
-        return H
     
 class GroupHomomorphism(Function): #we should add here check_well_defined, and check_group_axioms as options
     """
@@ -1092,6 +1031,69 @@ def GroupOfUnitsModInt(n):
     G=Set([m for m in range(n) if gcd(n,m)==1])
     bop=Function(G.cartesian(G),G,lambda x: (x[0]*x[1])%n,check_well_defined=False)
     return Group(G,bop, check_inv=False, check_ass=False, abelian=True, identity=1)
+
+def ElementaryDivisors(n):
+    def partition(n):
+        a = [0 for i in range(n + 1)]
+        k = 1
+        y = n - 1
+        while k != 0:
+            x = a[k - 1] + 1
+            k -= 1
+            while 2 * x <= y:
+                a[k] = x
+                y -= x
+                k += 1
+            l = k + 1
+            while x <= y:
+                a[k] = x
+                a[l] = y
+                yield a[:k + 2]
+                x += 1
+                y -= 1
+            a[k] = x + y
+            y = x + y - 1
+            yield a[:k + 1]
+    factored=factorint(n)
+    factored2={}
+    for i in factored.keys():
+        factored2[i]=list(partition(factored[i]))
+    E=[[[(lambda x: k**x)(i) for i in factored2[k][j]] for j in range(len(factored2[k]))] for k in factored2]
+    Econ=[[]]
+    for i in range(len(E)):
+        Econ=[a+[b] for a in Econ for b in E[i]]
+    return Econ
+   
+def AbelianGroups(n,option="ElementaryDivisors"):
+    if option=="ElementaryDivisors":
+        E=ElementaryDivisors(n)
+    elif option=="InvariantFactors":
+        E=InvariantFactors(n)
+    else:
+        raise ValueError("The option is ElementaryDivisors (defect) or InvariantFactors")
+    Res=[[CyclicGroup(m) for m in flatten(h)] for h in E]
+    l=Res[0]
+    def car(l):
+        G=l[0]
+        if len(l)==1:
+            return G
+        return G.cartesian(car(l[1:]))
+    total=[car(l) for l in Res]
+    return total
+    
+def InvariantFactors(n):
+    E=ElementaryDivisors(n)
+    H=[]
+    for B in E:
+        L=[]
+        A=deepcopy(B)
+        while len(A)!=0:
+            a=funtools.reduce(operator.mul,[h.pop() for h in A])
+            L.append(a)  
+            while [] in A:
+                A.remove([])
+        H.append(L) 
+    return H
 
 class permutation:
     """
