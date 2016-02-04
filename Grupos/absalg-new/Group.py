@@ -739,7 +739,7 @@ class Group:
         total=[car(l) for l in Res]
         return total
     
-   def InvariantFactors(n):
+    def InvariantFactors(n):
         E=ElementaryDivisors(n)
         H=[]
         for B in E:
