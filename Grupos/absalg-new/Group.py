@@ -1088,7 +1088,7 @@ def InvariantFactors(n):
         L=[]
         A=deepcopy(B)
         while len(A)!=0:
-            a=funtools.reduce(operator.mul,[h.pop() for h in A])
+            a=functools.reduce(operator.mul,[h.pop() for h in A])
             L.append(a)  
             while [] in A:
                 A.remove([])
