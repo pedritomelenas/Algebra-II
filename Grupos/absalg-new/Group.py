@@ -6,6 +6,7 @@ import operator
 from Set import Set
 from Function import Function
 from fractions import gcd
+from copy import deepcopy
 
 class GroupElem:
     """
@@ -449,7 +450,7 @@ class Group:
         return Group(oldG, self.bin_op.new_domains(oldG.cartesian(oldG), oldG, check_well_defined=False),  
                      parent=self.parent,check_ass=False,check_inv=False, identity=self.e.elem)     
         
-        def is_cyclic(self):
+    def is_cyclic(self):
         """Checks if self is a cyclic Group"""
         return any(g.order() == len(self) for g in self)
 
