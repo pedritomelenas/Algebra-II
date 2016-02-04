@@ -7,6 +7,9 @@ from Set import Set
 from Function import Function
 from fractions import gcd
 from copy import deepcopy
+from sympy import factorint
+from sympy.utilities.iterables import flatten
+
 
 class GroupElem:
     """
