@@ -450,9 +450,9 @@ class Group:
             if oldG == newG: break
             else: oldG = newG
         oldG = Set(g.elem for g in oldG)
-        return Group(oldG, self.bin_op.new_domains(oldG.cartesian(oldG), oldG, check_well_defined=False),  
-                     parent=self.parent,check_ass=False,check_inv=False, identity=self.e.elem)     
-        
+        return Group(oldG, self.bin_op.new_domains(oldG.cartesian(oldG), oldG, check_well_defined=False),
+                     parent=self.parent,check_ass=False,check_inv=False, identity=self.e.elem)
+
     def is_cyclic(self):
         """Checks if self is a cyclic Group"""
         return any(g.order() == len(self) for g in self)
@@ -663,17 +663,17 @@ class Group:
     def is_simple(self):
         """Determines if the group is simple"""
         return len(self.normal_subgroups())==2
-    
+
     def commutator(self, group1,group2):
         """Return the commutator of the subgroups."""
         if not(group1<=self and group2<=self):
             raise TypeError("The arguments must be subgroups of the given group")
-        G=[g * h * g**-1 * h**-1 for g in group1 for h in group2] 
+        G=[g * h * g**-1 * h**-1 for g in group1 for h in group2]
         return self.generate(G)
 
     def derived_subgroup(self):
         """Return the derived subgroup of the group."""
-        return self.commutator(self, self)    
+        return self.commutator(self, self)
 
     def derived_series(self):
         res = [self]
@@ -683,18 +683,18 @@ class Group:
             res.append(nextgroup)
             current = nextgroup
             nextgroup = nextgroup.derived_subgroup()
-        return res 
-    
+        return res
+
     def is_trivial(self):
         return all(g.elem == self.e.elem for g in self)
-    
+
     def is_soluble(self):
         ds = self.derived_series()
-        terminator = ds[len(ds) - 1] 
-        return terminator.is_trivial() 
-   
-    
-    
+        terminator = ds[len(ds) - 1]
+        return terminator.is_trivial()
+
+
+
 class GroupHomomorphism(Function): #we should add here check_well_defined, and check_group_axioms as options
     """
     The definition of a Group Homomorphism
@@ -736,6 +736,16 @@ class GroupHomomorphism(Function): #we should add here check_well_defined, and c
 
     def __call__(self,other):
         return self.function(other)
+
+
+    def __hash__(self):
+        return hash(self.domain) + 2 * hash(self.codomain)
+
+    def __eq__(self, other):
+        if not isinstance(other, GroupHomomorphism):
+            return False
+
+        return self.domain == other.domain and self.codomain==other.codomain and all(self.function(a)==other.function(a) for a in self.domain)
 
     def kernel(self):
         """Returns the kernel of the homomorphism as a Group object"""
@@ -1066,7 +1076,7 @@ def ElementaryDivisors(n):
     for i in range(len(E)):
         Econ=[a+[b] for a in Econ for b in E[i]]
     return Econ
-   
+
 def AbelianGroups(n,option="ElementaryDivisors"):
     if option=="ElementaryDivisors":
         E=ElementaryDivisors(n)
@@ -1083,7 +1093,7 @@ def AbelianGroups(n,option="ElementaryDivisors"):
         return G.cartesian(car(l[1:]))
     total=[car(l) for l in Res]
     return total
-    
+
 def InvariantFactors(n):
     E=ElementaryDivisors(n)
     H=[]
@@ -1092,10 +1102,10 @@ def InvariantFactors(n):
         A=deepcopy(B)
         while len(A)!=0:
             a=functools.reduce(operator.mul,[h.pop() for h in A])
-            L.append(a)  
+            L.append(a)
             while [] in A:
                 A.remove([])
-        H.append(L) 
+        H.append(L)
     return H
 
 class permutation:
