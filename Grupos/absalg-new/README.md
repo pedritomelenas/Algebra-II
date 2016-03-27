@@ -77,6 +77,10 @@ Now many functions are implemented using the generators of the (sub)group.
 
 - Commutator
 
+- derived series
+
+- `is_soluble`, `is_simple` and `is_trivial`
+
 - `orders` returns a dictionary with the orders of the elements in the group
 
 - `group_lattice` draws the Hasse diagram of subgroups of a given group_lattice
