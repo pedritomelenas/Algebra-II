@@ -747,6 +747,15 @@ class GroupHomomorphism(Function): #we should add here check_well_defined, and c
 
         return self.domain == other.domain and self.codomain==other.codomain and all(self.function(a)==other.function(a) for a in self.domain)
 
+    def __ne__(self, other):
+        return not self == other
+
+    def __str__(self):
+        return "Group homomorphism"
+
+    def __repr__(self):
+        return "Group homomorphism between "+str(self.domain)+" and "+str(self.codomain)
+
     def kernel(self):
         """Returns the kernel of the homomorphism as a Group object"""
         G = Set(g.elem for g in self.domain if self(g) == self.codomain.e)
