@@ -3,13 +3,13 @@
 import itertools
 import functools
 import operator
+import math
 from Set import Set
 from Function import Function
 from fractions import gcd
 from copy import deepcopy
-from sympy import factorint
+from sympy.ntheory import factorint,totient
 from sympy.utilities.iterables import flatten
-
 
 class GroupElem:
     """
@@ -124,7 +124,10 @@ class GroupElem:
         if not self.group.is_abelian():
             raise TypeError("self must be in an abelian group")
         return self * (other ** -1)
-
+    
+    def conjugate(self,g):
+        return g*self*g**-1
+    
     def conjugacy_class(self):
         """
         Returns the conjugacy class of self in self.group
@@ -135,18 +138,29 @@ class GroupElem:
         """
         Returns the centralizer of self, that is, the set of elements that commute with self
         """
-        G=Set([g.elem for g in self.group if g*self==self*g])
-        op=self.group.bin_op.new_domains(G.cartesian(G),G) #Function(G.cartesian(G),G,lambda x:x[0]*x[1])
-        return Group(G,op,parent=self.group.parent, check_ass=False, check_inv=False, abelian=self.group.is_abelian(),identity=self.group.e.elem)
+        G=self.group
+        def prop(g):
+            return g*self  ==  self*g 
+        return G.subgroup_search(prop)
 
     def order(self):
-        """Returns the order of self in the Group"""
-        return len(self.group.generate([self]))
-
+        G=self.group
+        if not  self in G:
+            raise ValueError
+        identity = G(G.e.elem)
+        if self == identity:
+            return 1
+        i = 1
+        x = self
+        while not x == identity:
+            x = x*self
+            i = i + 1
+        return i
 
 class Group:
     """Group definition"""
-    def __init__(self, G, bin_op, parent=None, check_ass=True, check_inv=True, identity=None, abelian=None):
+
+    def __init__(self, G, bin_op, parent=None, check_ass=True, check_inv=True, identity=None, abelian=None, group_order=None, group_degree=None):
         """Create a group, checking group axioms"""
 
         # Test types
@@ -162,13 +176,6 @@ class Group:
         if not(isinstance(check_inv,bool)):
             raise TypeError("check_inv must be bool")
 
-
-        # Test associativity
-        if check_ass:
-            if not all(bin_op((a, bin_op((b, c)))) == \
-                       bin_op((bin_op((a, b)), c)) \
-                       for a in G for b in G for c in G):
-                raise ValueError("binary operation is not associative")
         # Find the identity
         if identity in G:
             e=identity
@@ -187,6 +194,13 @@ class Group:
                 if not any(bin_op((a,  b)) == e for b in G):
                     raise ValueError("G doesn't have inverses")
 
+        # Test associativity
+        if check_ass:
+            if not all(bin_op((a, bin_op((b, c)))) == \
+                       bin_op((bin_op((a, b)), c)) \
+                       for a in G for b in G for c in G):
+                raise ValueError("binary operation is not associative")
+
         # At this point, we've verified that we have a Group.
         # Now determine if the Group is abelian:
         if not(isinstance(abelian,bool)):
@@ -202,6 +216,9 @@ class Group:
             self.parent=self
         else:
             self.parent=parent
+        self.group_gens=list(self.group_elems)
+        self.group_order=group_order
+        self.group_degree=group_degree
 
     def __iter__(self):
         """Iterate over the GroupElems in G, returning the identity first"""
@@ -235,7 +252,13 @@ class Group:
         return "Group with "+str(len(self))+" elements"
 
     def __repr__(self):
-        return "Group with "+str(len(self))+" elements"
+        if self.group_gens!=None:
+            gs = "Group( "+str(self.group_gens)+" )"
+            if len(gs)>100:
+                gs = "Group with "+str(len(self))+" elements"
+        else:
+            gs = "Group with "+str(len(self))+" elements"
+        return gs
 
     def table(self, rep=None):
         """
@@ -319,15 +342,22 @@ class Group:
 
     def __le__(self, other):
         """Checks if self is a subgroup of other"""
+        return self.is_subgroup(other)
+
+    def is_subgroup(self, other):
+        """Return True if all elements of self belong to other.
+        """
         if not isinstance(other, Group):
-            raise TypeError("other must be a Group")
+           return False
+        if self == other:
+            return True
         if self.parent==other:
             return True
-        if self.parent==other.parent:
-            return self.Set <= other.Set
-        return self.Set <= other.Set and \
-               all(self.bin_op((a, b)) == other.bin_op((a, b)) \
-                   for a in self.Set for b in self.Set)
+        if other.order() % self.order() != 0:
+            return False
+        gens = self.group_gens
+        return Set(self.group_gens)<=Set(other.group_elems) and \
+            all(self.bin_op((a.elem, b.elem)) == other.bin_op((a.elem, b.elem)) for a in self.group_gens for b in self.group_gens)
 
     def is_normal_subgroup(self, other):
         """Checks if self is a normal subgroup of other"""
@@ -335,8 +365,15 @@ class Group:
             return False
         if other.is_abelian():
             return True
-        return all(Set(g * h for h in self) == Set(h * g for h in self) \
-                   for g in other)
+        gens1 = self.group_gens
+        gens2 = other.group_gens
+        for g in gens2:
+            for h in gens1:
+                p = g * h * g**-1
+                if not p in Set(self.group_elems):
+                    return False
+        return True
+
 
     def __truediv__(self, other):
         """ Returns the quotient group self / other """
@@ -399,7 +436,9 @@ class Group:
         ab=False
         if self.is_abelian() and other.is_abelian():
             ab=True
-        return Group((self.Set).cartesian(other.Set), bin_op, check_ass=False, check_inv=False, identity=(self.e.elem, other.e.elem),abelian=ab)
+        Gr=Group((self.Set).cartesian(other.Set), bin_op, check_ass=False, check_inv=False, identity=(self.e.elem, other.e.elem),abelian=ab,group_order=self.group_order*other.group_order)
+        Gr.group_gens=[(self.e.elem,b)  for b in other.group_gens]+[(a,other.e.elem)  for a in self.group_gens]
+        return Gr
 
     def subgroup_by_elms(self, elems):
         """
@@ -424,34 +463,103 @@ class Group:
 
         G=Set([el.elem for  el in elems])
         op=self.bin_op.new_domains(G.cartesian(G),G,check_well_defined=False)
-        return Group(G,op,parent=self.parent, check_ass=False, check_inv=False,identity=self.e.elem)
+        Gr=Group(G,op,parent=self.parent, check_ass=False, check_inv=False,identity=self.e.elem,group_order=len(elems))
+        Gr.group_gens=elems
+        return Gr
 
-    def generate(self, elems):
+    def generate(self,generators):
         """
-        Returns the subgroup of self generated by GroupElems elems
+        Returns the subgroup of self generated by the list generators of GroupElems
 
         If any of the items aren't already GroupElems, we will try to convert
         them to GroupElems before continuing.
 
-        elems must be iterable
+        generators must be iterable
         """
+        idn = self(self.e.elem)
+        ord = 1
+        element_list = [idn]
+        set_element_list = set([idn])
+        gens = [g if isinstance(g, GroupElem) else GroupElem(g, self) for g in generators]
+        for i in range(len(gens)):
+            # D elements of the subgroup G_i generated by gens[:i]
+            D = element_list[:]
+            N = [idn]
+            while N:
+                A = N
+                N = []
+                for a in A:
+                    for g in gens[:i + 1]:
+                        ag = a*g
+                        if ag not in set_element_list:
+                        # produce G_i*g
+                            for d in D:
+                                ord += 1
+                                ap = d*ag
+                                element_list.append(ap)
+                                set_element_list.add(ap)
+                                N.append(ap)
+        oldG = Set(g.elem for g in element_list)
+        G=Group(oldG, self.bin_op.new_domains(oldG.cartesian(oldG), oldG, check_well_defined=False),
+                     parent=self.parent,check_ass=False,check_inv=False, identity=self.e.elem,group_order=ord)
+        G.group_gens=gens
+        return G
 
-        elems = Set(g if isinstance(g, GroupElem) else GroupElem(g, self) \
-                    for g in elems)
+    def subgroup_search(self, prop):
+        """Return a subgroup of all elements satisfying the property."""
+        H=set([self(self.e.elem)])
+        G=self.group_elems
+        F=G-H
+        while len(F)>0:
+            g=Set(F).pick()
+            if prop(g):
+                H=set(self.generate(list(H|set([g]))))
+                F=F-H
+            else:
+                Dg=Set([g*h for h in H])
+                F=Set(F-Dg)
+        oldG = Set(g.elem for g in H)
+        G=Group(oldG, self.bin_op.new_domains(oldG.cartesian(oldG), oldG, check_well_defined=False),
+                     parent=self.parent,check_ass=False,check_inv=False, identity=self.e.elem,group_order=len(oldG))
+        return G
 
-        if not elems <= self.group_elems:
-            raise ValueError("elems must be a subset of self.group_elems")
-        if len(elems) == 0:
-            raise ValueError("elems must have at least one element")
+    def element_search(self, prop):
+        """Return an element satisfying the property."""
+        H=set([self(self.e.elem)])
+        G=self.group_elems
+        F=G-H
+        while len(F)>0:
+            g=Set(F).pick()
+            if prop(g):
+                return g
+            else:
+                Dg=Set([g*h for h in H])
+                F=Set(F-Dg)
+        return g
 
-        oldG = elems|Set([self(self.e.elem)])
-        while True:
-            newG = oldG | Set([a * b for a in elems for b in oldG])
-            if oldG == newG: break
-            else: oldG = newG
-        oldG = Set(g.elem for g in oldG)
-        return Group(oldG, self.bin_op.new_domains(oldG.cartesian(oldG), oldG, check_well_defined=False),
-                     parent=self.parent,check_ass=False,check_inv=False, identity=self.e.elem)
+    def normal_closure(self, other):
+        """Return the normal closure of other in self."""
+        if not(other<=self):
+            raise TypeError("The argument must be subgroup of the given group")
+        G=self.group_gens
+        U=other.group_gens
+        N=[]
+        for x in U:
+            N.append(x)
+        for d in N:
+            for g in G:
+                c=g*d*g**-1
+                if not c in self.generate(N):
+                    N.append(c)
+        return self.generate(N)
+
+    def orders(self):
+        """Return the dictionary of the orders of all the elements of self."""
+        L=self.group_elems
+        orders = {}
+        for x in L:
+            orders.update({x:x.order()})
+        return orders
 
     def is_cyclic(self):
         """Checks if self is a cyclic Group"""
@@ -469,7 +577,7 @@ class Group:
                 if new_sgs == old_sgs: break
                 else: old_sgs = new_sgs
 
-            n=len(self)
+            n=self.order()
             layers={n:set([self])}
             for i in range(1,n):
                 if n%i==0:
@@ -481,7 +589,10 @@ class Group:
             raise ValueError("The second argument, if given, must be an integer")
         if (k<=0) or (len(self)%k!=0):
             return []
-
+        if k==1:
+            return self.generate([self.e.elem])
+        if k==self.order():
+            return self
         elem_e=set([self.e])
         elems=set(self.group_elems)
         L=elems.difference(elem_e)
@@ -508,10 +619,17 @@ class Group:
             n=n/p
         return self.subgroups(r)
 
+    def is_transitive(self):
+        f=GroupAction(self,Set(list(range(1,self.group_degree+1))),lambda x,y:x.elem(y))
+        return f.is_transitive()
+
     def order(self):
-        if not isinstance(self, Group):
-            raise TypeError("self is not a Group")
-        return len(self)
+        """Return the order of the group.
+        """
+        if self.group_order != None:
+            return self.group_order
+        self.group_order = len(self)
+        return self.group_order
 
     def index(self,other):
         if not isinstance(self, Group):
@@ -525,6 +643,8 @@ class Group:
         at most log_2(len(self)) + 1
         """
 
+        if len(self.group_gens) != len(self):
+            return self.group_gens
         result = [self.e.elem]
         H = self.generate(result)
 
@@ -536,7 +656,8 @@ class Group:
         if len(self) != 1:
             result = result[1:]
 
-        return [GroupElem(g, self) for g in result]
+        self.group_gens= [GroupElem(g, self) for g in result]
+        return self.group_gens
 
     def find_isomorphism(self, other):
         """
@@ -613,21 +734,22 @@ class Group:
             G=[g for g in G if not(g in H)]
         return cls
 
-    def center(self):
-        """Computes the center of self: the subgroup of element g such that g*h=h*g for all h in G"""
-        G=Set([g.elem for g in self if all(g*h==h*g for h in self)])
-        op=self.bin_op.new_domains(G.cartesian(G),G,check_well_defined=False)
-        return Group(G,op,parent=self.parent, check_ass=False, check_inv=False, abelian=True,identity=self.e.elem)
-
-    def conjugacy_class(self):
-        """Computes the set of g*self*g^-1 for all g in self.parent"""
-        cls=set([])
-        G=list(self.parent.group_elems)
-        H=list(self.group_elems)
-        for g in G:
-            N=frozenset([g*h*g**-1 for h in H])
-            cls.add(N)
+    def conjugate_subgroup(self,other,g):
+        conj=[g*x*g**-1 for x in other.group_gens]
+        return self.generate(conj)
+    
+    def conjugacy_class_subgroup(self,other):
+        """Computes the set of g*other*g^-1 for all g in self"""
+        cls=Set([self.conjugate_subgroup(other,g) for g in self.group_elems])
         return cls
+    
+    def conjugacy_classes_subgroups(self):
+        """Computes the set of g*H*g^-1 for all H subgroup of self"""
+        sbs_d=self.subgroups()
+        sbs=[H for j in sbs_d.keys() for H in sbs_d[j]] 
+        cls=set([self.conjugacy_class_subgroup(H) for H in sbs])
+        return cls
+    
     def cosets(self,other,side="left"):
         if not(other<=self):
             raise ValueError("The first argument must be a subgroup of the given group")
@@ -650,27 +772,39 @@ class Group:
                 D=list(set(D)-new)
             return cls
         raise ValueError("The second argument must be either 'left' or 'right'")
-    def normalizer(self):
-        """Computes the normalizer of self in self.parent"""
-        if self.Set==self.parent.Set:
-            return self
-        G=list(self.parent.group_elems)
-        H=list(self.group_elems)
-        N=Set([g.elem for g in G if set([g*h for h in H])==set([h*g for h in H])])
-        op=self.bin_op.new_domains(N.cartesian(N),N,check_well_defined=False)
-        return Group(N,op,parent=self.parent, check_ass=False, check_inv=False, identity=self.e.elem)
+    
+    def normalizer(self,other):
+        S=other.group_gens
+        H=other.group_elems
+        def prop(g):
+            return all((g*h*g**-1 in H) for h in S)
+        return self.subgroup_search(prop)
 
     def is_simple(self):
         """Determines if the group is simple"""
         return len(self.normal_subgroups())==2
 
-    def commutator(self, group1,group2):
-        """Return the commutator of the subgroups."""
-        if not(group1<=self and group2<=self):
-            raise TypeError("The arguments must be subgroups of the given group")
-        G=[g * h * g**-1 * h**-1 for g in group1 for h in group2]
-        return self.generate(G)
-
+    def commutator(self,H,K):
+        ggens = H.group_gens
+        hgens = K.group_gens    
+        commutators = []
+        for ggen in ggens:
+            for hgen in hgens:
+                commutator = hgen * ggen * hgen**-1 * ggen**-1
+                if commutator not in commutators:
+                    commutators.append(commutator)
+        res = self.normal_closure(self.generate(commutators))
+        return res  
+    
+    def centralizer(self,other):
+        def prop(g):
+            return [g*h for h in other.group_gens]  ==  [h*g for h in other.group_gens] 
+        return self.subgroup_search(prop)
+    
+    def center(self):
+        """Computes the center of self: the subgroup of element g such that g*h=h*g for all h in G"""
+        return self.centralizer(self)
+    
     def derived_subgroup(self):
         """Return the derived subgroup of the group."""
         return self.commutator(self, self)
@@ -686,15 +820,152 @@ class Group:
         return res
 
     def is_trivial(self):
-        return all(g.elem == self.e.elem for g in self)
+        return self.order== 1 and all(g.elem == self.e.elem for g in self)
 
     def is_soluble(self):
         ds = self.derived_series()
         terminator = ds[len(ds) - 1]
         return terminator.is_trivial()
 
+    def group_lattice(self):
+        from graphviz import Digraph
+        from IPython.display import display, Image,HTML
+        G=Digraph(graph_attr={'rankdir': 'TB'},node_attr={'rank':'source','shape':'plaintext'},format='png')
+        sbs_d=self.subgroups()
+        sbs=[H for j in sbs_d.keys() for H in sbs_d[j]] 
+        letters = "ABCDEFGHIJKLNNOPQRSTUVWXYZ"
+        toletter = {}
+        toelem = {}
+        for letter, elem in zip(letters, sbs):
+            toletter[elem] = letter
+            toelem[letter] = elem
+        letters = letters[:len(sbs)]
+        table=' <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"> <TR><TD COLSPAN="2"><B>Subgroups</B></TD></TR>'
+        for g in sbs:
+            table=table+"<tr><td>"+toletter[g]+"</td><td>"+str(set(g.group_elems))+"</td></tr>"
+        table=table+"</TABLE> "
+        for g in sbs:
+            G.node(repr(g),label=toletter[g],shape='circle',color='Cyan',style='filled')
+        edges=[(a,b) for a in sbs for b in sbs if (b <= a) and (a!=b)]
+        for e in edges:
+            G.edge(repr(e[0]),repr(e[1]),color='Red',dir='back')
+        png_str = G.render(cleanup=True)
+        display(HTML(table),Image(png_str))
 
+    def CayleyGraph(self):
+        from IPython.display import Image,SVG,display
+        import graphviz as gv
+        G=gv.Digraph(format='png',engine='circo')
+        elems=[g for g in self.group_gens]
+        vertices=[repr(a) for a in self]
+        for v in vertices:
+            G.node(v)
+        letters = "abcdefghijklmnopqrstuvwxyz"
+        colors = ['Red','Blue','Green','Yellow','SkyBlue','PaleGreen','Lime','Tan','YellowGreen',
+              'Violet','Tomato','Plum','Magenta','Mocassin','LightPink', 'LightCyan','Khaki',
+              'Ivory','Gray','Fuchsia','Coral','Bisque','Aqua','Azure','DeepPink','Gainsboro',
+              'HotPink']
+        toletter = {}
+        toelem = {}
+        for letter, elem in zip(letters, elems):
+            toletter[elem] = letter
+            toelem[letter] = elem
+        letters = letters[:len(elems)]
+        tocelem = {}
+        tocolor = {}
+        for elem, color in zip(elems,colors):
+            tocolor[elem] = color
+            tocelem[color] = elem
+        colors = colors[:len(elems)]
+        E={}
+        for i in range(len(elems)):
+            E[i]=[(repr(a),repr(b)) for a in self for b in self if b==a*elems[i]]    
+            for e in E[i]:
+                G.edge(e[0],e[1],toletter[elems[i]],_attributes={'color':tocolor[elems[i]]})
+        png_str = G.render(cleanup=True)
+        display(Image(data=png_str))  
+    
+    def automorphism_identity(self):
+        return GroupHomomorphism(self, self,lambda x: x,check_morphism_axioms=False) 
+     
+    def AutomorphismGroup(self):
+        """Group of automorphisms of self"""
+        dicts=[]
+        # Try to match the generators of self with some subset of other
+        A = self.group_gens
+        for B in itertools.permutations(self.group_elems, len(A)):
 
+            func = dict(zip(A, B)) # the mapping
+            counterexample = False
+            while not counterexample:
+
+                # Loop through the mapped elements so far, trying to extend the
+                # mapping or else find a counterexample
+                noobs = {}
+                for g, h in itertools.product(func, func):
+                    if g * h in func:
+                        if func[g] * func[h] != func[g * h]:
+                            counterexample = True
+                            break
+                    else:
+                        noobs[g * h] = func[g] * func[h]
+
+                # If we've mapped all the elements of self, then it's a
+                # homomorphism provided we haven't seen any counterexamples.
+                if len(func) == len(self):
+                   break
+
+                # Make sure there aren't any collisions before updating
+                imagelen = len(set(noobs.values()) | set(func.values()))
+                if imagelen != len(noobs) + len(func):
+                    counterexample = True
+                func.update(noobs)
+            if not counterexample:
+                dicts.append(func)
+        def fn(d):
+            return lambda x:d[x]
+        Gr=Set([GroupHomomorphism(self,self,fn(d)) for d in dicts])
+        bin_op= Function(Gr.cartesian(Gr), Gr, lambda x: x[0].homomorphism_compose(x[1]),
+                     check_well_defined=False)
+        return Group(Gr, bin_op,check_ass=False,check_inv=False,identity=self.automorphism_identity())
+    
+    def automorphism_by_conjugation(self,other):
+        return GroupHomomorphism(self, self,lambda x: other*x*other**-1,check_morphism_axioms=False)    
+    
+    def InnerAutomorphismGroup(self):
+        Gr=Set([self.automorphism_by_conjugation(g) for g in self])
+        bin_op= Function(Gr.cartesian(Gr), Gr, lambda x: x[0].homomorphism_compose(x[1]),check_well_defined=False)
+        return Group(Gr, bin_op,check_ass=False,check_inv=False,identity=self.automorphism_identity(), parent=self.AutomorphismGroup())
+    
+    def AllHomomorphisms(self,other):
+        """List of homomorphisms of self to other"""
+        dicts=[]
+        # Try to match the generators of self with some subset of other
+        A = self.group_gens
+        for B in itertools.permutations(other.group_elems, len(A)):
+            func = dict(zip(A, B)) # the mapping
+            counterexample = False
+            while not counterexample:
+                # Loop through the mapped elements so far, trying to extend the
+                # mapping or else find a counterexample
+                noobs = {}
+                for g, h in itertools.product(func, func):
+                    if g * h in func:
+                        if func[g] * func[h] != func[g * h]:
+                            counterexample = True
+                            break
+                    else:
+                        noobs[g * h] = func[g] * func[h]
+                # If we've mapped all the elements of self, then it's a
+                # homomorphism provided we haven't seen any counterexamples.
+                if len(func) == len(self):
+                    break
+                func.update(noobs)
+            if not counterexample:
+                dicts.append(func)
+        def fn(d):
+            return lambda x:d[x]
+        return [GroupHomomorphism(self,other,fn(d)) for d in dicts]     
 class GroupHomomorphism(Function): #we should add here check_well_defined, and check_group_axioms as options
     """
     The definition of a Group Homomorphism
@@ -736,8 +1007,7 @@ class GroupHomomorphism(Function): #we should add here check_well_defined, and c
 
     def __call__(self,other):
         return self.function(other)
-
-
+    
     def __hash__(self):
         return hash(self.domain) + 2 * hash(self.codomain)
 
@@ -753,13 +1023,13 @@ class GroupHomomorphism(Function): #we should add here check_well_defined, and c
     def __str__(self):
         if not(self.domain==self.codomain):
             return "Group homomorphism between "+str(self.domain)+" and "+str(self.codomain)
-        return "Group endomorphism of "+str(self.domain)
+        return "Group automorphism of "+str(self.domain)
 
     def __repr__(self):
         if not(self.domain==self.codomain):
             return "Group homomorphism"
-        return "Group endomorphism"
-
+        return "Group automorphism"
+    
     def kernel(self):
         """Returns the kernel of the homomorphism as a Group object"""
         G = Set(g.elem for g in self.domain if self(g) == self.codomain.e)
@@ -772,6 +1042,24 @@ class GroupHomomorphism(Function): #we should add here check_well_defined, and c
 
     def is_isomorphism(self):
         return self.is_bijective()
+    
+    def homomorphism_compose(self,other):
+        if not self.domain == other.codomain:
+            raise ValueError("codomain of other must match domain of self") 
+        return GroupHomomorphism(other.domain, self.codomain,lambda x: self(other(x)), check_morphism_axioms=False)
+    
+    def automorphism_inverse(self):
+        if not self.function.is_bijective():
+            raise ValueError("self must be bijective") 
+        l={}
+        for x in self.domain:
+            l[x]=self(x)
+        inv = {v: k for k, v in l.items()}
+        return GroupHomomorphism(self.codomain, self.domain,lambda x: inv[x], check_morphism_axioms=False)                         
+    
+    def automorphism_by_conjugation(self,other):
+        return GroupHomomorphism(self, self,lambda x: other*x*other**-1,check_morphism_axioms=False) 
+          
 
 class GroupAction: #we should add here check_well_defined, and check_group_axioms as options
     """
@@ -827,30 +1115,104 @@ class GroupAction: #we should add here check_well_defined, and check_group_axiom
     def __call__(self,g,el):
         return self.function(g,el)
 
-    def orbit(self, other):
+
+    def orbit(self,other):
         if not(other in self.set):
             raise ValueError("other must be in self.set")
-        return Set([self.function(a,other) for a in self.group])
+        degree=len(self.set)
+        gens=self.group.group_gens
+        other=[other]
+        orb = other
+        used = [False]*(degree+1)
+        for el in other:
+            used[el] = True
+        for b in orb:
+            for gen in gens:
+                temp = self.function(gen,b)
+                if used[temp] == False:
+                    orb.append(temp)
+                    used[temp] = True
+        return Set(orb)
+
 
     def orbits(self):
-        lels=list(self.set)
-        lorb=[]
-        while len(lels)>0:
-            el=lels[0]
-            orb=self.orbit(el)
-            lorb.append(orb)
-            lels=[g for g in lels if not(g in orb)]
-        return lorb
+        """Compute the orbits of G.
+        """
+        degree=len(self.set)
+        seen = set()  # elements that have already appeared in orbits
+        orbs = []
+        sorted_I = list(range(1,degree+1))
+        I = set(sorted_I)
+        while I:
+            i = sorted_I[0]
+            orb = self.orbit(i)
+            orbs.append(orb)
+            # remove all indices that are in this orbit
+            I -= orb
+            sorted_I = [i for i in sorted_I if i not in orb]
+        return orbs
 
     def stabilizer(self,other):
         if not(other in self.set):
             raise ValueError("other must be in self.set")
-        G=Set([a.elem for a in self.group if self.function(a,other)==other])
-        return Group(G,self.group.bin_op.new_domains(G.cartesian(G), G, check_well_defined=False),parent=self.group, check_ass=False,check_inv=False,identity=self.group.e.elem)
+        G=self.group
+        degree=len(self.set)
+        orb = [other]
+        table = {other: G(G.e.elem)}
+        table_inv = {other: G(G.e.elem)}
+        used = [False]*(degree+1)
+        used[other] = True
+        gens=G.group_gens
+        stab_gens = []
+        for b in orb:
+            for gen in gens:
+                temp = self.function(gen,b)
+                if used[temp] is False:
+                    gen_temp = gen*table[b]
+                    orb.append(temp)
+                    table[temp] = gen_temp
+                    table_inv[temp] = gen_temp**-1
+                    used[temp] = True
+                else:
+                    schreier_gen = table_inv[temp]*gen*table[b]
+                    if schreier_gen not in stab_gens:
+                        stab_gens.append(schreier_gen)
+        return G.generate(stab_gens)
+
+    def orbit_transversal(self,other, pairs):
+        """Computes a transversal for the orbit of ``alpha`` as a set.
+        For a permutation group ``G``, a transversal for the orbit
+        ``Orb = \{g(\alpha) | g \in G\}`` is a set
+        ``\{g_\beta | g_\beta(\alpha) = \beta\}`` for ``\beta \in Orb``.
+        Note that there may be more than one possible transversal.
+        If ``pairs`` is set to ``True``, it returns the list of pairs
+        ``(\beta, g_\beta)``. For a proof of correctness, see [1], p.79
+        """
+        G=self.group
+        degree=len(self.set)
+        tr = [(other,G(G.e.elem))]
+        used = [False]*(degree+1)
+        used[other] = True
+        gens=self.group.group_gens
+        for x, px in tr:
+            for gen in gens:
+                temp = self.function(gen,x)
+                if used[temp] == False:
+                    tr.append((temp, gen*px))
+                    used[temp] = True
+        if pairs:
+            return tr
+        return [y for _, y in tr]
 
     def is_transitive(self):
-        return len(self.orbits())==1
-
+        got_orb = False
+        for x in self.orbits():
+            if len(x) > 1:
+                if got_orb:
+                    return False
+                got_orb = True
+        return got_orb
+    
 def CyclicGroup(n, rep="integers"):
     """
     Returns the cylic group of order n
@@ -872,7 +1234,9 @@ def CyclicGroup(n, rep="integers"):
     if rep=="integers":
         G = Set(range(n))
         bin_op = Function(G.cartesian(G), G, lambda x: (x[0] + x[1]) % n)
-        return Group(G, bin_op,check_ass=False,check_inv=False,identity=0,abelian=True)
+        Gr= Group(G, bin_op,check_ass=False,check_inv=False,identity=0, abelian=True, group_order=n)
+        Gr.group_gens=[Gr(1)]
+        return Gr
     if rep=="permutations":
         def rotate_left(x, y):
             if len(x) == 0:
@@ -886,8 +1250,12 @@ def CyclicGroup(n, rep="integers"):
                 yield permutation(gen)
                 gen = rotate_left(gen, 1)
         G=Set(cyclic(n))
-        bin_op = Function(G.cartesian(G), G, lambda x: x[0]*x[1])
-        return Group(G, bin_op,check_ass=False,check_inv=False,identity=permutation(list(range(1,n+1))),abelian=True)
+        #bin_op = Function(G.cartesian(G), G, lambda x: x[0]*x[1])
+        bin_op=SymmetricGroup(n).bin_op.new_domains(G.cartesian(G),G,check_well_defined=False)
+        Gr = Group(G, bin_op,check_ass=False,check_inv=False, identity=permutation(list(range(1,n+1))),
+        abelian=True, group_order=n, group_degree=n,parent=SymmetricGroup(n))
+        Gr.group_gens=[Gr(permutation([tuple(range(1,n+1))]))]
+        return Gr
     raise ValueError("The second argument can be 'integers' or 'permutations'")
 
 def SymmetricGroup(n):
@@ -899,11 +1267,24 @@ def SymmetricGroup(n):
         >>> S3.group_elems
         Set([ (2, 3),  (1, 3),  (1, 2),  (1, 3, 2), ( ),  (1, 2, 3)])
     """
+
     G = Set(permutation(list(g)) for g in itertools.permutations(list(range(1,n+1))))
     bin_op = Function(G.cartesian(G), G, lambda x: x[0]*x[1])
+
     if n>2:
-        return Group(G, bin_op,check_ass=False,check_inv=False,identity=permutation(list(range(1,n+1))),abelian=False)
-    return Group(G, bin_op,check_ass=False,check_inv=False,identity=permutation(list(range(1,n+1))),abelian=True)
+        Gr = Group(G, bin_op,check_ass=False,check_inv=False, identity=permutation(list(range(1,n+1))), abelian=False,
+        group_order=math.factorial(n), group_degree=n)
+        Gr.group_gens=[Gr(permutation([tuple(range(1,n+1))])),Gr(permutation((1,2)).extend(n))]
+        return Gr
+    if n==2:
+        Gr = Group(G, bin_op,check_ass=False,check_inv=False, identity=permutation(list(range(1,3))), abelian=True,
+        group_order=2, group_degree=2)
+        Gr.group_gens=[Gr(permutation([tuple(range(1,3))]))]
+    if n==1:
+        Gr = Group(G, bin_op,check_ass=False,check_inv=False, identity=permutation(list(range(1,2))), abelian=True,
+        group_order=1, group_degree=1)
+        Gr.group_gens=[Gr(permutation([tuple(range(1,2))]))]
+    return Gr
 
 
 def AlternatingGroup(n):
@@ -920,11 +1301,18 @@ def AlternatingGroup(n):
         >>> Q.Set
         Set([Set([ (2, 3),  (1, 2),  (1, 3)]), Set([ (1, 2, 3),  (1, 3, 2), ( )])])
     """
+
     G = Set(permutation(list(g)) for g in itertools.permutations(list(range(1,n+1))) if permutation(list(g)).sign()==1)
     bin_op = Function(G.cartesian(G), G, lambda x: x[0]*x[1])
     if n>2:
-        return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=False,parent=SymmetricGroup(n))
-    return Group(G, bin_op,check_ass=False,check_inv=False,identity=tuple(range(n)),abelian=True,parent=SymmetricGroup(n))
+        Gr=Group(G, bin_op,check_ass=False,check_inv=False,identity=permutation(list(range(1,n+1))),abelian=False,
+        group_order=math.factorial(n)//2,parent=SymmetricGroup(n), group_degree=n)
+        Gr.group_gens=[Gr.parent(permutation((i,i+1,i+2)).extend(n)) for i in range(1,n-1)]
+    if n==2:
+        Gr = Group(G, bin_op,check_ass=False,check_inv=False, identity=permutation(list(range(1,3))), abelian=True,
+        group_order=1,parent=SymmetricGroup(2), group_degree=2)
+        Gr.group_gens=[Gr.parent(permutation(list(range(1,3))))]
+    return Gr
 
 
 
@@ -946,6 +1334,7 @@ def DihedralGroup(n, rep="RS"):
         >>> DP3.Set
         Set([ (2, 3),  (1, 3),  (1, 2),  (1, 3, 2), ( ),  (1, 2, 3)])
     """
+
     if rep=="RS":
         G = Set("%s%d" % (l, x) for l in "RS" for x in range(n))
         def multiply_symmetries(x):
@@ -961,7 +1350,9 @@ def DihedralGroup(n, rep="RS"):
                     return "S%d" % ((x1 - x2) % n)
                 else:
                     return "R%d" % ((x1 - x2) % n)
-        return Group(G, Function(G.cartesian(G), G, multiply_symmetries))
+        Gr=Group(G, Function(G.cartesian(G), G, multiply_symmetries),group_order=2*n)
+        Gr.group_gens=[Gr('R1'),Gr('S0')]
+        return Gr
     if rep=="permutations":
         def rotate_left(x, y):
             if len(x) == 0:
@@ -987,7 +1378,10 @@ def DihedralGroup(n, rep="RS"):
 
         G=Set(dihedral(n))
         bin_op = Function(G.cartesian(G), G, lambda x: x[0]*x[1])
-        return Group(G, bin_op,check_ass=False,check_inv=False,identity=permutation(list(range(1,2*n+1))),abelian=False)
+        Gr=Group(G, bin_op,check_ass=False,check_inv=False,identity=permutation(list(range(1,2*n+1))),abelian=False,
+        group_order=2*n,parent=SymmetricGroup(n), group_degree=n)
+        Gr.group_gens=[Gr.parent(permutation([1]+list(range(2,n+1))[::-1])),Gr.parent(permutation([tuple(range(1,n+1))]))]
+        return Gr
     raise ValueError("The second argument can be 'RS' or 'permutations'")
 
 def QuaternionGroup(rep="ijk"):
@@ -1005,6 +1399,7 @@ def QuaternionGroup(rep="ijk"):
         >>> j*i
         '-k'
     """
+
     if rep=="ijk":
         q2=[ "1", "-1", "i", "-i", "j", "-j", "k", "-k"]
         table=[[ "1", "-1", "i", "-i", "j", "-j", "k", "-k"],[ "-1", "1", "-i", "i", "-j", "j", "-k", "k"],[ "i", "-i", "-1", "1", "k", "-k", "-j", "j"],[ "-i", "i", "1", "-1", "-k", "k", "j", "-j"],[ "j", "-j", "-k", "k", "-1", "1", "i", "-i"],[ "-j", "j", "k", "-k", "1", "-1", "-i", "i"],[ "k", "-k", "j", "-j", "-i", "i", "-1", "1"],[ "-k", "k", "-j", "j", "i", "-i", "1", "-1"]]
@@ -1013,7 +1408,11 @@ def QuaternionGroup(rep="ijk"):
             j=q2.index(b)
             return table[i][j]
         G=Set(q2)
-        return Group(G,Function(G.cartesian(G),G, lambda x: product(x[0],x[1])))
+        bin_op = Function(G.cartesian(G), G, lambda x: product(x[0],x[1]))
+        Gr=Group(G,Function(G.cartesian(G),G, bin_op),check_ass=False,check_inv=False,identity="1",abelian=False,
+        group_order=8)
+        Gr.group_gens=[Gr('i'),Gr('j')]
+        return Gr
     if rep=="permutations":
         q1=[permutation([1, 2, 3, 4, 5, 6, 7, 8]), permutation([2, 3, 4, 1, 6, 8, 5, 7]),
             permutation([3, 4, 1, 2, 8, 7, 6, 5]), permutation([4, 1, 2, 3, 7, 5, 8, 6]),
@@ -1021,7 +1420,10 @@ def QuaternionGroup(rep="ijk"):
             permutation([7, 8, 6, 5, 2, 1, 3, 4]), permutation([8, 6, 5, 7, 1, 4, 2, 3])]
         G=Set(q1)
         bin_op = Function(G.cartesian(G), G, lambda x: x[0]*x[1])
-        return Group(G, bin_op)
+        Gr=Group(G, bin_op,check_ass=False,check_inv=False,identity=permutation([1, 2, 3, 4, 5, 6, 7, 8]),
+        abelian=False, group_order=8, group_degree=8, parent=SymmetricGroup(8))
+        Gr.group_gens=[Gr.parent(permutation([2, 3, 4, 1, 6, 8, 5, 7])),Gr.parent(permutation([4, 1, 2, 3, 7, 5, 8, 6]))]
+        return Gr
     raise ValueError("The second argument must be 'ijk' or 'permutations'")
 
 def KleinGroup(rep="integers"):
@@ -1038,12 +1440,19 @@ def KleinGroup(rep="integers"):
         >>> list(KK)
         [( ),  (1, 4)(2, 3),  (1, 3)(2, 4),  (1, 2)(3, 4)]
     """
+
     if rep=="integers":
         G=CyclicGroup(2)
         return G.cartesian(G)
     if rep=="permutations":
-        G=AlternatingGroup(4)
-        return G.generate([permutation((1,2),(3,4)), permutation((1,3),(2,4))])
+
+        G=Set([permutation([1,2,3,4]),permutation((1,2),(3,4)),permutation((1,3),(2,4)),permutation((1,4),(2,3))])
+        #bin_op = Function(G.cartesian(G), G, lambda x: x[0]*x[1])
+        bin_op=AlternatingGroup(4).bin_op.new_domains(G.cartesian(G),G,check_well_defined=False)
+        Gr=Group(G, bin_op,check_ass=False,check_inv=False,identity=permutation([1, 2, 3, 4]),
+        abelian=True,parent=AlternatingGroup(4), group_order=4, group_degree=4)
+        Gr.group_gens=[Gr.parent(permutation((1,2),(3,4))), Gr.parent(permutation((1,3),(2,4)))]
+        return Gr
     raise ValueError("The second argument can be 'RS' or 'permutations'")
 
 def DiCyclicGroup():
@@ -1051,12 +1460,15 @@ def DiCyclicGroup():
     b=permutation([(1,3,2,4),(5,7)])
     G=Set([a**i for i in range(6)]+[a**i*b for i in range(6)])
     bin_op = Function(G.cartesian(G), G, lambda x: x[0]*x[1])
-    return Group(G, bin_op,check_ass=False,check_inv=False,identity=permutation([1,2,3,4,5,6,7]),abelian=False)
+    Gr=Group(G, bin_op,check_ass=False,check_inv=False,identity=permutation([1,2,3,4,5,6,7]),abelian=False,
+    group_order=8,group_degree=7)
+    Gr.group_gens=[Gr(a),Gr(b)]
+    return Gr
 
 def GroupOfUnitsModInt(n):
     G=Set([m for m in range(n) if gcd(n,m)==1])
     bop=Function(G.cartesian(G),G,lambda x: (x[0]*x[1])%n,check_well_defined=False)
-    return Group(G,bop, check_inv=False, check_ass=False, abelian=True, identity=1)
+    return Group(G,bop, check_inv=False, check_ass=False, abelian=True, identity=1,group_order=totient(n))
 
 def ElementaryDivisors(n):
     def partition(n):
