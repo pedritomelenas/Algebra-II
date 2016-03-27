@@ -751,10 +751,14 @@ class GroupHomomorphism(Function): #we should add here check_well_defined, and c
         return not self == other
 
     def __str__(self):
-        return "Group homomorphism"
+        if not(self.domain==self.codomain):
+            return "Group homomorphism between "+str(self.domain)+" and "+str(self.codomain)
+        return "Group automorphism of "+str(self.domain)
 
     def __repr__(self):
-        return "Group homomorphism between "+str(self.domain)+" and "+str(self.codomain)
+        if not(self.domain==self.codomain):
+            return "Group homomorphism"
+        return "Group automorphism"
 
     def kernel(self):
         """Returns the kernel of the homomorphism as a Group object"""
