@@ -49,6 +49,8 @@ This is a sort of changelog with restpect to the original absalg module. For a s
 
 ### Group
 
+Now many functions are implemented using the generators of the (sub)group.
+
 - The following optional parameters have been added to `Group`: check_ass, check_inv, identity and abelian. In this way we avoid checking the respective properties when we are sure that they hold. Among other advantages, now $S_4\times S_4$ is computed in a reasonable amount of time. Cartesian product, product of subgroups, intersection of subgroups, subroups y subgroups spanned by a list of elements take profit of this new feature.
 
 - Cartesian product is now denoted by `G.cartesian(H)` instead of `G*H`; we keep `*` for the product of two subgroups.
@@ -59,22 +61,33 @@ This is a sort of changelog with restpect to the original absalg module. For a s
 
 - Lateral classes of subgroups: `a*H` and  `H*a`.
 
-- `SymmetricGroup(n)` is now a group of `permutation`s.
-
-- We have also `AlternatingGroup(n)`, the alternating group, as a subgroup of `SymmetricGroup(n)`.
-
 - Cayley table now in colors if in python notebook (html object).
 
 - There is a method to compute the set of conjugacy classes of the elements in a group; elements are used in this representation unless `rep="letters"` is used.
 
-- Conjugacy class of a subgroup
+- Conjugacy class of a subgroup and cojugacy classes of subgroups
 
 - Center of a group
 
-- Normalizer
+- Normalizer and centralizer
+
+- Search of subgroups and elements in a group with a given property
+
+- Normal closure
+
+- Commutator
+
+- `orders` returns a dictionary with the orders of the elements in the group
+
+- `group_lattice` draws the Hasse diagram of subgroups of a given group_lattice
+
+- `CayleyGraph` displays the Cayley graph of group with respect to its generating set
+
+- `SymmetricGroup(n)` is now a group of `permutation`s.
+
+- We have also `AlternatingGroup(n)`, the alternating group, as a subgroup of `SymmetricGroup(n)`.
 
 - `DihedralGroup(n)` substitutes `Dn(n)`; `DihedralGroup(n,"permutations")` ouputs the dihedral group as a subgroup of `SymmetricGroup(n)`.
-
 
 - `CyclicGroup(n)` is now used instead of `Zn(n)`;  `CyclicGroup(n,"permutations")` yields the subgroup of `SymmetricGroup(n)` spanned by the cicle (1..n)
 
@@ -91,6 +104,7 @@ True
 
 - Groups have `__str__` y `__repr__`.
 
+
 ## Function
 
 - We have introduced a new parameter `check_well_defined` to avoid testing if a function is well defined when we know (for sure) that it is so...
@@ -101,8 +115,6 @@ True
 - We introduced group actions with orbits and stabilizers
 
 ## ToDo
-
-- Optimize test for normality
 
 - Better data type control
 
