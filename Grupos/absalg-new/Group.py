@@ -1023,13 +1023,13 @@ class GroupHomomorphism(Function): #we should add here check_well_defined, and c
 
     def __str__(self):
         if not(self.domain==self.codomain):
-            return "Group homomorphism"
-        return "Group endomorphism"
+            return "Group homomorphism between "+str(self.domain)+" and "+str(self.codomain)
+        return "Group endomorphism of "+str(self.domain)
 
     def __repr__(self):
         if not(self.domain==self.codomain):
-            return "Group homomorphism between "+str(self.domain)+" and "+str(self.codomain)
-        return "Group endomorphism of "+str(self.domain)
+            return "Group homomorphism"
+        return "Group endomorphism"
 
     def kernel(self):
         """Returns the kernel of the homomorphism as a Group object"""
@@ -1114,24 +1114,28 @@ class GroupAction: #we should add here check_well_defined, and check_group_axiom
         return self.function(g,el)
 
 
-    def orbit(self,other):
+    # def orbit(self,other):
+    #     if not(other in self.set):
+    #         raise ValueError("other must be in self.set")
+    #     degree=len(self.set)
+    #     gens=self.group.group_gens
+    #     other=[other]
+    #     orb = other
+    #     used = [False]*(degree+1)
+    #     for el in other:
+    #         used[el] = True
+    #     for b in orb:
+    #         for gen in gens:
+    #             temp = self.function(gen,b)
+    #             if used[temp] == False:
+    #                 orb.append(temp)
+    #                 used[temp] = True
+    #     return Set(orb)
+
+    def orbit(self, other):
         if not(other in self.set):
             raise ValueError("other must be in self.set")
-        degree=len(self.set)
-        gens=self.group.group_gens
-        other=[other]
-        orb = other
-        used = [False]*(degree+1)
-        for el in other:
-            used[el] = True
-        for b in orb:
-            for gen in gens:
-                temp = self.function(gen,b)
-                if used[temp] == False:
-                    orb.append(temp)
-                    used[temp] = True
-        return Set(orb)
-
+        return Set([self.function(a,other) for a in self.group])
 
     def orbits(self):
         """Compute the orbits of G.
@@ -1150,32 +1154,38 @@ class GroupAction: #we should add here check_well_defined, and check_group_axiom
             sorted_I = [i for i in sorted_I if i not in orb]
         return orbs
 
+    # def stabilizer(self,other):
+    #     if not(other in self.set):
+    #         raise ValueError("other must be in self.set")
+    #     G=self.group
+    #     degree=len(self.set)
+    #     orb = [other]
+    #     table = {other: G(G.e.elem)}
+    #     table_inv = {other: G(G.e.elem)}
+    #     used = [False]*(degree+1)
+    #     used[other] = True
+    #     gens=G.group_gens
+    #     stab_gens = []
+    #     for b in orb:
+    #         for gen in gens:
+    #             temp = self.function(gen,b)
+    #             if used[temp] is False:
+    #                 gen_temp = gen*table[b]
+    #                 orb.append(temp)
+    #                 table[temp] = gen_temp
+    #                 table_inv[temp] = gen_temp**-1
+    #                 used[temp] = True
+    #             else:
+    #                 schreier_gen = table_inv[temp]*gen*table[b]
+    #                 if schreier_gen not in stab_gens:
+    #                     stab_gens.append(schreier_gen)
+    #     return G.generate(stab_gens)
+
     def stabilizer(self,other):
         if not(other in self.set):
             raise ValueError("other must be in self.set")
-        G=self.group
-        degree=len(self.set)
-        orb = [other]
-        table = {other: G(G.e.elem)}
-        table_inv = {other: G(G.e.elem)}
-        used = [False]*(degree+1)
-        used[other] = True
-        gens=G.group_gens
-        stab_gens = []
-        for b in orb:
-            for gen in gens:
-                temp = self.function(gen,b)
-                if used[temp] is False:
-                    gen_temp = gen*table[b]
-                    orb.append(temp)
-                    table[temp] = gen_temp
-                    table_inv[temp] = gen_temp**-1
-                    used[temp] = True
-                else:
-                    schreier_gen = table_inv[temp]*gen*table[b]
-                    if schreier_gen not in stab_gens:
-                        stab_gens.append(schreier_gen)
-        return G.generate(stab_gens)
+        G=Set([a.elem for a in self.group if self.function(a,other)==other])
+        return Group(G,self.group.bin_op.new_domains(G.cartesian(G), G, check_well_defined=False),parent=self.group, check_ass=False,check_inv=False,identity=self.group.e.elem)
 
     def orbit_transversal(self,other, pairs):
         """Computes a transversal for the orbit of ``alpha`` as a set.
@@ -1382,10 +1392,10 @@ def DihedralGroup(n, rep="RS"):
         return Gr
     raise ValueError("The second argument can be 'RS' or 'permutations'")
 
+
 def QuaternionGroup(rep="ijk"):
     """
     The quaternion group Q2; its elments are 1,i,j,k and their oposite
-
     Example:
         >>> Q2=QuaternionGroup()
         >>> list(Q2)
@@ -1397,7 +1407,6 @@ def QuaternionGroup(rep="ijk"):
         >>> j*i
         '-k'
     """
-
     if rep=="ijk":
         q2=[ "1", "-1", "i", "-i", "j", "-j", "k", "-k"]
         table=[[ "1", "-1", "i", "-i", "j", "-j", "k", "-k"],[ "-1", "1", "-i", "i", "-j", "j", "-k", "k"],[ "i", "-i", "-1", "1", "k", "-k", "-j", "j"],[ "-i", "i", "1", "-1", "-k", "k", "j", "-j"],[ "j", "-j", "-k", "k", "-1", "1", "i", "-i"],[ "-j", "j", "k", "-k", "1", "-1", "-i", "i"],[ "k", "-k", "j", "-j", "-i", "i", "-1", "1"],[ "-k", "k", "-j", "j", "i", "-i", "1", "-1"]]
@@ -1406,11 +1415,7 @@ def QuaternionGroup(rep="ijk"):
             j=q2.index(b)
             return table[i][j]
         G=Set(q2)
-        bin_op = Function(G.cartesian(G), G, lambda x: product(x[0],x[1]))
-        Gr=Group(G,Function(G.cartesian(G),G, bin_op),check_ass=False,check_inv=False,identity="1",abelian=False,
-        group_order=8)
-        Gr.group_gens=[Gr('i'),Gr('j')]
-        return Gr
+        return Group(G,Function(G.cartesian(G),G, lambda x: product(x[0],x[1])))
     if rep=="permutations":
         q1=[permutation([1, 2, 3, 4, 5, 6, 7, 8]), permutation([2, 3, 4, 1, 6, 8, 5, 7]),
             permutation([3, 4, 1, 2, 8, 7, 6, 5]), permutation([4, 1, 2, 3, 7, 5, 8, 6]),
@@ -1418,11 +1423,50 @@ def QuaternionGroup(rep="ijk"):
             permutation([7, 8, 6, 5, 2, 1, 3, 4]), permutation([8, 6, 5, 7, 1, 4, 2, 3])]
         G=Set(q1)
         bin_op = Function(G.cartesian(G), G, lambda x: x[0]*x[1])
-        Gr=Group(G, bin_op,check_ass=False,check_inv=False,identity=permutation([1, 2, 3, 4, 5, 6, 7, 8]),
-        abelian=False, group_order=8, group_degree=8, parent=SymmetricGroup(8))
-        Gr.group_gens=[Gr.parent(permutation([2, 3, 4, 1, 6, 8, 5, 7])),Gr.parent(permutation([4, 1, 2, 3, 7, 5, 8, 6]))]
-        return Gr
+        return Group(G, bin_op)
     raise ValueError("The second argument must be 'ijk' or 'permutations'")
+
+# def QuaternionGroup(rep="ijk"):
+#     """
+#     The quaternion group Q2; its elments are 1,i,j,k and their oposite
+#
+#     Example:
+#         >>> Q2=QuaternionGroup()
+#         >>> list(Q2)
+#         ['1', 'i', 'k', 'j', '-i', '-k', '-j', '-1']
+#         >>> i=Q2("i")
+#         >>> j=Q2("j")
+#         >>> i*j
+#         'k'
+#         >>> j*i
+#         '-k'
+#     """
+#
+#     if rep=="ijk":
+#         q2=[ "1", "-1", "i", "-i", "j", "-j", "k", "-k"]
+#         table=[[ "1", "-1", "i", "-i", "j", "-j", "k", "-k"],[ "-1", "1", "-i", "i", "-j", "j", "-k", "k"],[ "i", "-i", "-1", "1", "k", "-k", "-j", "j"],[ "-i", "i", "1", "-1", "-k", "k", "j", "-j"],[ "j", "-j", "-k", "k", "-1", "1", "i", "-i"],[ "-j", "j", "k", "-k", "1", "-1", "-i", "i"],[ "k", "-k", "j", "-j", "-i", "i", "-1", "1"],[ "-k", "k", "-j", "j", "i", "-i", "1", "-1"]]
+#         def product(a,b):
+#             i=q2.index(a)
+#             j=q2.index(b)
+#             return table[i][j]
+#         G=Set(q2)
+#         bin_op = Function(G.cartesian(G), G, lambda x: product(x[0],x[1]))
+#         Gr=Group(G,Function(G.cartesian(G),G, bin_op),check_ass=False,check_inv=False,identity="1",abelian=False,
+#         group_order=8)
+#         Gr.group_gens=[Gr('i'),Gr('j')]
+#         return Gr
+#     if rep=="permutations":
+#         q1=[permutation([1, 2, 3, 4, 5, 6, 7, 8]), permutation([2, 3, 4, 1, 6, 8, 5, 7]),
+#             permutation([3, 4, 1, 2, 8, 7, 6, 5]), permutation([4, 1, 2, 3, 7, 5, 8, 6]),
+#             permutation([5, 7, 8, 6, 3, 2, 4, 1]), permutation([6, 5, 7, 8, 4, 3, 1, 2]),
+#             permutation([7, 8, 6, 5, 2, 1, 3, 4]), permutation([8, 6, 5, 7, 1, 4, 2, 3])]
+#         G=Set(q1)
+#         bin_op = Function(G.cartesian(G), G, lambda x: x[0]*x[1])
+#         Gr=Group(G, bin_op,check_ass=False,check_inv=False,identity=permutation([1, 2, 3, 4, 5, 6, 7, 8]),
+#         abelian=False, group_order=8, group_degree=8, parent=SymmetricGroup(8))
+#         Gr.group_gens=[Gr.parent(permutation([2, 3, 4, 1, 6, 8, 5, 7])),Gr.parent(permutation([4, 1, 2, 3, 7, 5, 8, 6]))]
+#         return Gr
+#     raise ValueError("The second argument must be 'ijk' or 'permutations'")
 
 def KleinGroup(rep="integers"):
     """
