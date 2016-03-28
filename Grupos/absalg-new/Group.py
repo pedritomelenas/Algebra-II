@@ -966,6 +966,7 @@ class Group:
         def fn(d):
             return lambda x:d[x]
         return [GroupHomomorphism(self,other,fn(d)) for d in dicts]
+
 class GroupHomomorphism(Function): #we should add here check_well_defined, and check_group_axioms as options
     """
     The definition of a Group Homomorphism
@@ -1056,9 +1057,6 @@ class GroupHomomorphism(Function): #we should add here check_well_defined, and c
             l[x]=self(x)
         inv = {v: k for k, v in l.items()}
         return GroupHomomorphism(self.codomain, self.domain,lambda x: inv[x], check_morphism_axioms=False)
-
-    def automorphism_by_conjugation(self,other):
-        return GroupHomomorphism(self, self,lambda x: other*x*other**-1,check_morphism_axioms=False)
 
 
 class GroupAction: #we should add here check_well_defined, and check_group_axioms as options
