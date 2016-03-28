@@ -124,10 +124,10 @@ class GroupElem:
         if not self.group.is_abelian():
             raise TypeError("self must be in an abelian group")
         return self * (other ** -1)
-    
+
     def conjugate(self,g):
         return g*self*g**-1
-    
+
     def conjugacy_class(self):
         """
         Returns the conjugacy class of self in self.group
@@ -140,7 +140,7 @@ class GroupElem:
         """
         G=self.group
         def prop(g):
-            return g*self  ==  self*g 
+            return g*self  ==  self*g
         return G.subgroup_search(prop)
 
     def order(self):
@@ -737,19 +737,19 @@ class Group:
     def conjugate_subgroup(self,other,g):
         conj=[g*x*g**-1 for x in other.group_gens]
         return self.generate(conj)
-    
+
     def conjugacy_class_subgroup(self,other):
         """Computes the set of g*other*g^-1 for all g in self"""
         cls=Set([self.conjugate_subgroup(other,g) for g in self.group_elems])
         return cls
-    
+
     def conjugacy_classes_subgroups(self):
         """Computes the set of g*H*g^-1 for all H subgroup of self"""
         sbs_d=self.subgroups()
-        sbs=[H for j in sbs_d.keys() for H in sbs_d[j]] 
+        sbs=[H for j in sbs_d.keys() for H in sbs_d[j]]
         cls=set([self.conjugacy_class_subgroup(H) for H in sbs])
         return cls
-    
+
     def cosets(self,other,side="left"):
         if not(other<=self):
             raise ValueError("The first argument must be a subgroup of the given group")
@@ -772,7 +772,7 @@ class Group:
                 D=list(set(D)-new)
             return cls
         raise ValueError("The second argument must be either 'left' or 'right'")
-    
+
     def normalizer(self,other):
         S=other.group_gens
         H=other.group_elems
@@ -786,7 +786,7 @@ class Group:
 
     def commutator(self,H,K):
         ggens = H.group_gens
-        hgens = K.group_gens    
+        hgens = K.group_gens
         commutators = []
         for ggen in ggens:
             for hgen in hgens:
@@ -794,17 +794,17 @@ class Group:
                 if commutator not in commutators:
                     commutators.append(commutator)
         res = self.normal_closure(self.generate(commutators))
-        return res  
-    
+        return res
+
     def centralizer(self,other):
         def prop(g):
-            return [g*h for h in other.group_gens]  ==  [h*g for h in other.group_gens] 
+            return [g*h for h in other.group_gens]  ==  [h*g for h in other.group_gens]
         return self.subgroup_search(prop)
-    
+
     def center(self):
         """Computes the center of self: the subgroup of element g such that g*h=h*g for all h in G"""
         return self.centralizer(self)
-    
+
     def derived_subgroup(self):
         """Return the derived subgroup of the group."""
         return self.commutator(self, self)
@@ -832,7 +832,7 @@ class Group:
         from IPython.display import display, Image,HTML
         G=Digraph(graph_attr={'rankdir': 'TB'},node_attr={'rank':'source','shape':'plaintext'},format='png')
         sbs_d=self.subgroups()
-        sbs=[H for j in sbs_d.keys() for H in sbs_d[j]] 
+        sbs=[H for j in sbs_d.keys() for H in sbs_d[j]]
         letters = "ABCDEFGHIJKLNNOPQRSTUVWXYZ"
         toletter = {}
         toelem = {}
@@ -879,15 +879,15 @@ class Group:
         colors = colors[:len(elems)]
         E={}
         for i in range(len(elems)):
-            E[i]=[(repr(a),repr(b)) for a in self for b in self if b==a*elems[i]]    
+            E[i]=[(repr(a),repr(b)) for a in self for b in self if b==a*elems[i]]
             for e in E[i]:
                 G.edge(e[0],e[1],toletter[elems[i]],_attributes={'color':tocolor[elems[i]]})
         png_str = G.render(cleanup=True)
-        display(Image(data=png_str))  
-    
+        display(Image(data=png_str))
+
     def automorphism_identity(self):
-        return GroupHomomorphism(self, self,lambda x: x,check_morphism_axioms=False) 
-     
+        return GroupHomomorphism(self, self,lambda x: x,check_morphism_axioms=False)
+
     def AutomorphismGroup(self):
         """Group of automorphisms of self"""
         dicts=[]
@@ -928,15 +928,15 @@ class Group:
         bin_op= Function(Gr.cartesian(Gr), Gr, lambda x: x[0].homomorphism_compose(x[1]),
                      check_well_defined=False)
         return Group(Gr, bin_op,check_ass=False,check_inv=False,identity=self.automorphism_identity())
-    
+
     def automorphism_by_conjugation(self,other):
-        return GroupHomomorphism(self, self,lambda x: other*x*other**-1,check_morphism_axioms=False)    
-    
+        return GroupHomomorphism(self, self,lambda x: other*x*other**-1,check_morphism_axioms=False)
+
     def InnerAutomorphismGroup(self):
         Gr=Set([self.automorphism_by_conjugation(g) for g in self])
         bin_op= Function(Gr.cartesian(Gr), Gr, lambda x: x[0].homomorphism_compose(x[1]),check_well_defined=False)
         return Group(Gr, bin_op,check_ass=False,check_inv=False,identity=self.automorphism_identity(), parent=self.AutomorphismGroup())
-    
+
     def AllHomomorphisms(self,other):
         """List of homomorphisms of self to other"""
         dicts=[]
@@ -965,7 +965,7 @@ class Group:
                 dicts.append(func)
         def fn(d):
             return lambda x:d[x]
-        return [GroupHomomorphism(self,other,fn(d)) for d in dicts]     
+        return [GroupHomomorphism(self,other,fn(d)) for d in dicts]
 class GroupHomomorphism(Function): #we should add here check_well_defined, and check_group_axioms as options
     """
     The definition of a Group Homomorphism
@@ -1007,7 +1007,7 @@ class GroupHomomorphism(Function): #we should add here check_well_defined, and c
 
     def __call__(self,other):
         return self.function(other)
-    
+
     def __hash__(self):
         return hash(self.domain) + 2 * hash(self.codomain)
 
@@ -1022,14 +1022,14 @@ class GroupHomomorphism(Function): #we should add here check_well_defined, and c
 
     def __str__(self):
         if not(self.domain==self.codomain):
-            return "Group homomorphism between "+str(self.domain)+" and "+str(self.codomain)
-        return "Group automorphism of "+str(self.domain)
+            return "Group homomorphism"
+        return "Group endomorphism"
 
     def __repr__(self):
         if not(self.domain==self.codomain):
-            return "Group homomorphism"
-        return "Group automorphism"
-    
+            return "Group homomorphism between "+str(self.domain)+" and "+str(self.codomain)
+        return "Group endomorphism of "+str(self.domain)
+
     def kernel(self):
         """Returns the kernel of the homomorphism as a Group object"""
         G = Set(g.elem for g in self.domain if self(g) == self.codomain.e)
@@ -1042,24 +1042,24 @@ class GroupHomomorphism(Function): #we should add here check_well_defined, and c
 
     def is_isomorphism(self):
         return self.is_bijective()
-    
+
     def homomorphism_compose(self,other):
         if not self.domain == other.codomain:
-            raise ValueError("codomain of other must match domain of self") 
+            raise ValueError("codomain of other must match domain of self")
         return GroupHomomorphism(other.domain, self.codomain,lambda x: self(other(x)), check_morphism_axioms=False)
-    
+
     def automorphism_inverse(self):
         if not self.function.is_bijective():
-            raise ValueError("self must be bijective") 
+            raise ValueError("self must be bijective")
         l={}
         for x in self.domain:
             l[x]=self(x)
         inv = {v: k for k, v in l.items()}
-        return GroupHomomorphism(self.codomain, self.domain,lambda x: inv[x], check_morphism_axioms=False)                         
-    
+        return GroupHomomorphism(self.codomain, self.domain,lambda x: inv[x], check_morphism_axioms=False)
+
     def automorphism_by_conjugation(self,other):
-        return GroupHomomorphism(self, self,lambda x: other*x*other**-1,check_morphism_axioms=False) 
-          
+        return GroupHomomorphism(self, self,lambda x: other*x*other**-1,check_morphism_axioms=False)
+
 
 class GroupAction: #we should add here check_well_defined, and check_group_axioms as options
     """
@@ -1212,7 +1212,7 @@ class GroupAction: #we should add here check_well_defined, and check_group_axiom
                     return False
                 got_orb = True
         return got_orb
-    
+
 def CyclicGroup(n, rep="integers"):
     """
     Returns the cylic group of order n
