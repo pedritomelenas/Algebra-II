@@ -1137,23 +1137,33 @@ class GroupAction: #we should add here check_well_defined, and check_group_axiom
             raise ValueError("other must be in self.set")
         return Set([self.function(a,other) for a in self.group])
 
-    def orbits(self):
-        """Compute the orbits of G.
-        """
-        degree=len(self.set)
-        seen = set()  # elements that have already appeared in orbits
-        orbs = []
-        sorted_I = list(range(1,degree+1))
-        I = set(sorted_I)
-        while I:
-            i = sorted_I[0]
-            orb = self.orbit(i)
-            orbs.append(orb)
-            # remove all indices that are in this orbit
-            I -= orb
-            sorted_I = [i for i in sorted_I if i not in orb]
-        return orbs
+    # def orbits(self):
+    #    """Compute the orbits of G.
+    #    """
+    #    degree=len(self.set)
+    #    seen = set()  # elements that have already appeared in orbits
+    #    orbs = []
+    #    sorted_I = list(range(1,degree+1))
+    #    I = set(sorted_I)
+    #    while I:
+    #        i = sorted_I[0]
+    #        orb = self.orbit(i)
+    #        orbs.append(orb)
+    #        # remove all indices that are in this orbit
+    #        I -= orb
+    #        sorted_I = [i for i in sorted_I if i not in orb]
+    #    return orbs
 
+    def orbits(self):
+        lels=list(self.set)
+        lorb=[]
+        while len(lels)>0:
+            el=lels[0]
+            orb=self.orbit(el)
+            lorb.append(orb)
+            lels=[g for g in lels if not(g in orb)]
+        return lorb
+    
     # def stabilizer(self,other):
     #     if not(other in self.set):
     #         raise ValueError("other must be in self.set")
