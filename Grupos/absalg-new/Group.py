@@ -967,6 +967,42 @@ class Group:
             return lambda x:d[x]
         return [GroupHomomorphism(self,other,fn(d)) for d in dicts]
 
+    def semidirect_product(self, other,hom):
+        """
+        Returns the cartesian product of the two groups
+        """
+        if not isinstance(other, Group):
+            raise TypeError("other must be a group")
+        bin_op=Function(self.Set.cartesian(other.Set).cartesian(self.Set.cartesian(other.Set)),self.Set.cartesian(other.Set),
+        lambda x:(self.bin_op((x[0][0],hom(other(x[0][1])).elem.function(self(x[1][0])).elem)),\
+        other.bin_op((x[0][1], x[1][1]))), check_well_defined=False)
+        Gr=Group((self.Set).cartesian(other.Set), bin_op, check_ass=False, check_inv=False, identity=(self.e.elem, other.e.elem),
+                 abelian=False,group_order=self.group_order*other.group_order)
+        #Gr.group_gens=[(self.e.elem,b)  for b in other.group_gens]+[(a,other.e.elem)  for a in self.group_gens]
+        return Gr
+    
+from sympy.matrices import * 
+from sympy.utilities.iterables import variations
+def GL2(base):
+    n=2
+    f=lambda x:x % base
+    L=list(map(list,variations(range(base), n,True)))
+    Mn=[ImmutableMatrix([i,j]) for i in L for j in L]
+    GLn =Set([A for A in Mn if A.det()% base != 0])
+    op=Function(GLn.cartesian(GLn),GLn,lambda x:(x[0]*x[1]).applyfunc(f),check_well_defined=False)
+    return Group(GLn,op,check_ass=False, check_inv=False, identity=ImmutableMatrix.eye(n),
+                 abelian=False,group_order=(base**n-1)*(base**n-base))    
+
+def SL2(base):
+    n=2
+    f=lambda x:x % base
+    L=list(map(list,variations(range(base), n,True)))
+    Mn=[ImmutableMatrix([i,j]) for i in L for j in L]
+    SLn =Set([A for A in Mn if A.det()% base == 1])
+    op=Function(SLn.cartesian(SLn),SLn,lambda x:(x[0]*x[1]).applyfunc(f),check_well_defined=False)
+    return Group(SLn,op,check_ass=False, check_inv=False, identity=ImmutableMatrix.eye(n),
+                 abelian=False,group_order=(base**n-1)*(base**n-base)//(base-1))
+
 class GroupHomomorphism(Function): #we should add here check_well_defined, and check_group_axioms as options
     """
     The definition of a Group Homomorphism
