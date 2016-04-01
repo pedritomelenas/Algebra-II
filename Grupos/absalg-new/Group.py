@@ -820,7 +820,7 @@ class Group:
         return res
 
     def is_trivial(self):
-        return self.order== 1 and all(g.elem == self.e.elem for g in self)
+        return self.order()== 1 and all(g.elem == self.e.elem for g in self)
 
     def is_soluble(self):
         ds = self.derived_series()
