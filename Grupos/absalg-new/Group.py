@@ -338,6 +338,8 @@ class Group:
             print(result)
 
 
+
+
     def is_abelian(self):
         """Checks if the group is abelian"""
         return self.abelian
@@ -367,6 +369,8 @@ class Group:
             return False
         if other.is_abelian():
             return True
+        if other.index(self)==2:
+            return True 
         gens1 = self.group_gens
         gens2 = other.group_gens
         for g in gens2:
@@ -387,8 +391,8 @@ class Group:
             h = x[0].pick()
             return Set(self.bin_op((h, g)) for g in x[1])
 
-        Gr= Group(G, Function(G.cartesian(G), G, multiply_cosets, check_well_defined=False))
-        Gr.group_gens=[g*other for g in self.group_gens]
+        Gr= Group(G, Function(G.cartesian(G), G, multiply_cosets, check_well_defined=False),group_order=self.order() // other.order())
+        #Gr.group_gens=list(Set(g*other for g in self.group_gens))
         #Gr.group_gens = [Set(self.bin_op((g.elem, h)) for h in other.Set) for g in self.group_gens]
 
         return Gr
@@ -403,8 +407,8 @@ class Group:
             h = x[0].pick()
             return Set(self.bin_op((h, g)) for g in x[1])
 
-        Gr= Group(G, Function(G.cartesian(G), G, multiply_cosets, check_well_defined=False))
-        Gr.group_gens=[g*other for g in self.group_gens]
+        Gr= Group(G, Function(G.cartesian(G), G, multiply_cosets, check_well_defined=False),group_order=self.order() // other.order())
+        #Gr.group_gens=list(Set(g*other for g in self.group_gens))
         #Gr.group_gens = [Set(self.bin_op((g.elem, h)) for h in other.Set) for g in self.group_gens]
 
         return Gr
@@ -624,6 +628,8 @@ class Group:
 
     def Sylow_subgroups(self,p):
         n=len(self)
+        if n%p!=0:
+           return []
         r=1
         while n%p ==0:
             r=r*p
@@ -668,7 +674,7 @@ class Group:
             result = result[1:]
 
         self.group_gens= [GroupElem(g, self) for g in result]
-        return self.group_gens
+        return [GroupElem(g, self) for g in result]
 
     def find_isomorphism(self, other):
         """
@@ -686,7 +692,7 @@ class Group:
 
         # Try to match the generators of self with some subset of other
         A = self.generators()
-        for B in itertools.permutations(other, len(A)):
+        for B in itertools.permutations(other.group_elems, len(A)):
 
             func = dict(zip(A, B)) # the mapping
             counterexample = False
@@ -715,7 +721,7 @@ class Group:
                 func.update(noobs)
 
             if not counterexample:
-                return GroupHomomorphism(self, other, lambda x: func[x])
+                return GroupHomomorphism(self, other, lambda x: func[x],check_morphism_axioms=False)
 
         return None
 
@@ -1204,7 +1210,10 @@ def CyclicGroup(n, rep="integers"):
         G = Set(range(n))
         bin_op = Function(G.cartesian(G), G, lambda x: (x[0] + x[1]) % n)
         Gr= Group(G, bin_op,check_ass=False,check_inv=False,identity=0, abelian=True, group_order=n)
-        Gr.group_gens=[Gr(1)]
+        if n==1:
+            Gr.group_gens=[Gr(0)]
+        else:    
+            Gr.group_gens=[Gr(1)]
         return Gr
     if rep=="permutations":
         def rotate_left(x, y):
@@ -1500,12 +1509,12 @@ def SL2(base):
                  abelian=False,group_order=(base**n-1)*(base**n-base)//(base-1))
 
 def RootsOfUnitGroup(n):
-    from sympy import exp, I,pi
-    G=Set([exp(k*(pi/n)*I) for k in range(n)])
-    bin_op=Function(G.cartesian(G),G,lambda x:exp((((x[0].args[0]*(n/(I*pi))+x[1].args[0]*(n/(I*pi))))%n)*((pi*I)/n)),
+    from sympy import pi
+    G=Set((1,k*(pi/n)) for k in range(n))
+    bin_op=Function(G.cartesian(G),G,lambda x:(1,(((x[0][1])+(x[1][1]))*(n/pi) %n)*pi/n),
     check_well_defined=False)
-    Gr=Group(G,bin_op,check_ass=False, check_inv=False,identity=1, abelian=True,group_order=n) 
-    Gr.group_gens=[Gr(exp((pi/n)*I))]
+    Gr=Group(G,bin_op,check_ass=False, check_inv=False,identity=(1,0), abelian=True,group_order=n,parent=None) 
+    Gr.group_gens=[Gr((1,pi/n))]
     return Gr
 
 def ElementaryDivisors(n):
