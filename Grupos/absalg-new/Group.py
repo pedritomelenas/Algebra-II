@@ -864,8 +864,13 @@ class Group:
         for g in sbs:
             G.node(repr(g),label=toletter[g],shape='circle',color='Cyan',style='filled')
         edges=[(a,b) for a in sbs for b in sbs if (b <= a) and (a!=b)]
+        for a in sbs:
+            for b in sbs:
+                for c in sbs:
+                    if ((a,b) in edges) and ((b,c) in edges and ((a,c))in edges):
+                        edges.remove((a,c)) 
         for e in edges:
-            G.edge(repr(e[0]),repr(e[1]),color='Red',dir='back')
+            G.edge(repr(e[0]),repr(e[1]),color='Red',dir='back')    
         png_str = G.render(cleanup=True)
         display(HTML(table),Image(png_str))
 
@@ -1482,9 +1487,13 @@ def DiCyclicGroup():
     return Gr
 
 def GroupOfUnitsModInt(n):
+    from sympy.ntheory.residue_ntheory import primitive_root
     G=Set([m for m in range(n) if gcd(n,m)==1])
     bop=Function(G.cartesian(G),G,lambda x: (x[0]*x[1])%n,check_well_defined=False)
-    return Group(G,bop, check_inv=False, check_ass=False, abelian=True, identity=1,group_order=totient(n))
+    Gr=Group(G,bop, check_inv=False, check_ass=False, abelian=True, identity=1,group_order=totient(n))
+    if Gr.is_cyclic():
+        Gr.group_gens=[Gr(primitive_root(n))]
+    return Gr
 
 from sympy.matrices import * 
 from sympy.utilities.iterables import variations
